@@ -13,7 +13,7 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
     socket.on('error', console.error)
     socket.connect(options)
     socket.on('connect', function () {
-        client.readHoldingRegisters(0, endRegisterCount)
+        client.readHoldingRegisters(3, endRegisterCount)
             .then(function (resp) {
                 console.log("Thread runnning for : " + slaveId);
                 console.log(host + "-" + port + "-" + slaveId)
@@ -157,7 +157,7 @@ app.post('/insertInTable', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
         console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryNo,Value) VALUES ('${req.body.No}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO ModbusRegisterValue (BatteryNo,Value) VALUES ('${req.body.No}','${req.body.Value}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
