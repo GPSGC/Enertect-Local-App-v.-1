@@ -19,6 +19,7 @@ async function run1(i, host, port, slaveId, endRegisterCount) {
                 console.log(host + "-" + port + "-" + slaveId)
                 console.log(resp.response._body.valuesAsArray)
 
+                
                 // // allValues.push(resp.response._body.valuesAsArray)
                 // // console.log(resp.response._body.valuesAsArray.length)
                 // for (i=0; i<resp.response._body.valuesAsArray.length; i++) {
