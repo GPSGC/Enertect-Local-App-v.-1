@@ -2,7 +2,7 @@
 const modbus = require('jsmodbus')
 const net = require('net')
 let sockets = [];
-async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
+async function getDashboardVoltage(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {
@@ -82,7 +82,7 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
                 var SlaveID = upsStringInfo[i].SlaveID;
                 var NoOfBattery = upsStringInfo[i].NoOfBattery;
                 //console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
-                run1(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                getDashboardVoltage(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
                 firstBatteryId +=NoOfBattery;
             }
 
