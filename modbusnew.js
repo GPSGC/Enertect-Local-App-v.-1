@@ -157,7 +157,7 @@ app.post('/insertInTable', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
         console.log("Connected!");
-        var sqlquery = `INSERT INTO ModbusRegisterValue (BatteryNo,Value) VALUES ('${req.body.No}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryNo,Value) VALUES ('${req.body.No}','${req.body.Value}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
