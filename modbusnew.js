@@ -29,7 +29,7 @@ async function getvolatge(i, host, port, slaveId, endRegisterCount,firstBatteryI
 
                     var raw = JSON.stringify({
                         "No": j,
-                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])/1000
                     });
 
                     var requestOptions = {
@@ -83,7 +83,7 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
 
                     var raw = JSON.stringify({
                         "No": j,
-                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])/10
                     });
 
                     var requestOptions = {
