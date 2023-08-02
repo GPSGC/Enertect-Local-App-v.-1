@@ -89,7 +89,6 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
         })
         .catch(error => console.log('error', error));
 
-
     // const clientArray = [17, 18];
     // for (j = 0; j < clientArray.length; j++) {
     //     console.log(clientArray[j]);
