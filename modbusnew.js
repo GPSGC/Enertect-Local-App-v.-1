@@ -2,7 +2,7 @@
 const modbus = require('jsmodbus')
 const net = require('net')
 let sockets = [];
-async function run1(i, host, port, slaveId, endRegisterCount) {
+async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {
@@ -20,33 +20,34 @@ async function run1(i, host, port, slaveId, endRegisterCount) {
                 console.log(resp.response._body.valuesAsArray)
 
                 
-                // // allValues.push(resp.response._body.valuesAsArray)
-                // // console.log(resp.response._body.valuesAsArray.length)
-                // for (i=0; i<resp.response._body.valuesAsArray.length; i++) {
-                //     //console.log("1 row inserted")
+                // allValues.push(resp.response._body.valuesAsArray)
+                // console.log(resp.response._body.valuesAsArray.length)
+                for (i=0, j=firstBatteryId; i<resp.response._body.valuesAsArray.length; i++, j++) {
+                    //console.log("1 row inserted")
 
-                //     //*********************************Add in DB*****************************************
-                //     var myHeaders = new Headers();
-                //     myHeaders.append("Content-Type", "application/json");
+                    //*********************************Add in DB*****************************************
+                    var myHeaders = new Headers();
+                    myHeaders.append("Content-Type", "application/json");
 
-                //     var raw = JSON.stringify({
-                //         "No": parseInt(i+1),
-                //       "Value": parseInt(resp.response._body.valuesAsArray[i])
-                //     });
+                    var raw = JSON.stringify({
+                        "No": j,
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                    });
 
-                //     var requestOptions = {
-                //       method: 'POST',
-                //       headers: myHeaders,
-                //       body: raw,
-                //       redirect: 'follow'
-                //     };
+                    var requestOptions = {
+                      method: 'POST',
+                      headers: myHeaders,
+                      body: raw,
+                      redirect: 'follow'
+                    };
 
-                //     fetch("http://localhost:2000/insertInTable", requestOptions)
-                //       .then(response => response.text())
-                //       .then(result => console.log(result))
-                //       .catch(error => console.log('error', error));
-                //     //********************************************************************************************
-                //   }
+                    fetch("http://localhost:2000/insertInTable", requestOptions)
+                      .then(response => response.text())
+                      .then(result => console.log(result))
+                      .catch(error => console.log('error', error));
+                    //********************************************************************************************
+                    
+                  }
                 socket.end()
             }).catch(function () {
                 console.error(require('util').inspect(arguments, {
@@ -68,20 +69,23 @@ async function run1(i, host, port, slaveId, endRegisterCount) {
         redirect: 'follow'
     };
 
-    fetch("http://localhost:5000/getUPSStringData", requestOptions)
+    fetch("http://localhost:2000/getUPSStringData", requestOptions)
         .then(response => response.text())
         .then(result => {
             //console.log(result))
             var tempJSON = JSON.parse(result);
             var upsStringInfo = tempJSON.recordset;
             //console.log(upsInfo);
+            var firstBatteryId=1;
+
             for (var i = 0; i < upsStringInfo.length; i++) {
                 var IPAddress = upsStringInfo[i].IPAddress;
                 var COMPort = upsStringInfo[i].COMPort;
                 var SlaveID = upsStringInfo[i].SlaveID;
                 var NoOfBattery = upsStringInfo[i].NoOfBattery;
                 //console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
-                run1(i, IPAddress, COMPort, SlaveID, NoOfBattery);
+                run1(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                firstBatteryId +=NoOfBattery;
             }
 
         })
@@ -102,7 +106,7 @@ async function run1(i, host, port, slaveId, endRegisterCount) {
 var express = require('express');
 var app = express();
 var sql = require("mssql");
-const port = 5000
+const port = 2000
 var bodyParser = require('body-parser')
 var jsonParser = bodyParser.json()
 app.use(express.static("public"));
@@ -127,7 +131,7 @@ app.get('/', function (req, res) {
         //res.send("Hello World");
     });
 });
-var server = app.listen(5000, function () {
+var server = app.listen(2000, function () {
     console.log(`Server is running ${port}`);
 });
 app.get('/getUPSStringData', function (req, res) {
