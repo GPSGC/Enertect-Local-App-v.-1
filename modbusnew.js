@@ -95,8 +95,6 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
 
     // }
 
-
-
 })()
 
 //**********************************SQL Connection******************************************//
