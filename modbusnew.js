@@ -19,8 +19,6 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
                 console.log(host + "-" + port + "-" + slaveId)
                 console.log(resp.response._body.valuesAsArray)
 
-                
-                // allValues.push(resp.response._body.valuesAsArray)
                 // console.log(resp.response._body.valuesAsArray.length)
                 for (i=0, j=firstBatteryId; i<resp.response._body.valuesAsArray.length; i++, j++) {
                     //console.log("1 row inserted")
