@@ -1,0 +1,487 @@
+<html>
+
+  <head>
+    <style>
+      /* The popup form - hidden by default */
+.form-popup {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  right: 15px;
+  border: 3px solid #f1f1f1;
+  z-index: 9;
+}
+    </style>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="color-scheme" content="light dark">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-dark.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.2/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/voca/1.4.0/voca.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script type="text/javascript" src="js/bankCode.js"></script>
+    <script type="text/javascript" src="js/pouchdb-7.2.1.js"></script>
+    <script type="text/javascript" src="js/pouchdb.find.js"></script>
+    <script type="text/javascript" src="js/moment.min.js"></script>
+    <title>Create Transfer</title>
+    <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#eeeeee" media="(prefers-color-scheme: dark)">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+
+  <body>
+    <button class="open-button" onclick="openForm()">Open Form</button>
+    <div class="form-popup" id="myForm">
+      <form action="/action_page.php" class="form-container">
+    <div class="container">
+
+
+      <h3>Create Transfer Request</h3>
+
+      <div class="mb-3">
+        <label for="sourceCurrency">Debit Account Currency</label>
+        <!-- <input type="text" class="form-control" id="sourceCurrency"   placeholder="Enter source Currency"> -->
+        <select class="form-control selec2" id="sourceCurrency">
+          <option selected>Open this select menu</option>
+          <option value="USD">USD</option>
+          <option value="SGD">SGD</option>
+          <option value="INR">INR</option>
+          <option value="GBP">GBP</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="sourceamount">Debit Amount</label>
+        <input type="text" class="form-control" id="sourceamount" placeholder="Enter source amount">
+      </div>
+
+      <div class="mb-3">
+        <label for="recipientCurrency">Choose recipient account Currency </label>
+        <select class="form-control selec2" id="recipientCurrency" onchange="OnRecipientCurrencyChanged(this.value); ">
+          <option selected>Open this select menu</option>
+          <option value="USD">USD</option>
+          <option value="SGD">SGD</option>
+          <option value="INR">INR</option>
+          <option value="GBP">GBP</option>
+        </select>
+
+      </div>
+      <!-- <div class="mb-3">
+          <label for="ExRate">Ex Rate</label>
+          <input type="text" class="form-control" id="exrate"   placeholder="Exchage Rate" onchange="OnExRateChanged(this.value); ">
+        </div>   -->
+      <!-- <div class="mb-3">
+          <label for="targetCurrency">Credit Currency</label>
+         
+          <select class="form-control selec2"  id="targetCurrency"    >
+            <option selected>Open this select menu</option>
+            <option value="USD">USD</option>
+            <option value="SGD">SGD</option>
+            <option value="INR">INR</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>       -->
+
+
+
+      <div class="mb-3">
+        <label for="accountHolderNameList">Account Holder Name</label>
+        <select class="form-control selec2" id="accountHolderNameList" onchange="onAccountHolderSelection(value);">
+          <option value="" disabled selected hidden>Select Name</option>
+
+        </select>
+
+      </div>
+      <!-- <div class="mb-3">
+        <label for="Creditamount">Credit Amount</label>
+        <input type="text" class="form-control" id="creditamount"   placeholder="Enter credit amount">
+      </div>    -->
+
+
+      <div class="mb-3">
+        <label for="Purpose">Reason for your Transfer</label>
+        <select class="form-control selec2" id="Purpose">
+          <option selected>None</option>
+          <option value="Travel Expenses">Travel Expenses</option>
+          <option value="Export of Software">Export of Software</option>
+          <option value="Payment for Goods Exported">Payment for Goods Exported</option>
+          <option value="Advance payment for Goods and Exports">Advance payment for Goods and Exports</opt ion>
+          <option value="Repayment of Loans">Repayment of Loans</option>
+          <option value="Payment for software consultancy/servcies only">Payment for software consultancy/servcies only
+          </option>
+          <option value="Consulting or other Business services">Consulting or other Business services</option>
+          <option value="Tuition fees or studying expenses">Tuition fees or studying expenses</option>
+          <option value="Medical Expenses">Medical Expenses</option>
+        </select>
+
+      </div>
+
+
+
+
+
+      <div class="mb-3">
+        <label for="Reference">Reference </label>
+        <input type="text" class="form-control" id="reference" placeholder="Reference">
+      </div>
+
+
+   
+      <button class="btn btn-warning w-100" type="button" onclick="btnClick()">
+        Transfer Payment
+        <br>
+
+      </button>
+      <br>
+      <label id="displayInfo" style="color:grey; font-size: 13px;"></label>
+      <!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal">
+              Open modal
+            </button>
+             -->
+      <!-- The Modal -->
+      <div class="modal" id="myModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <!-- <h4 class="modal-title">Modal Heading</h4> -->
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+              Payment Transfer Done Successfully !!
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+  </form>
+</div>
+    <script>
+      function openForm() {
+  document.getElementById("myForm").style.display = "block";
+}
+      //console.log(listBankCode.BankCode);
+      console.log(listBankCode.BankCode);
+      const urlParams = new URLSearchParams(window.location.search);
+      const Amount = urlParams.get('Amount');
+      const PaymentDetailsNo = urlParams.get('PaymentDetailsNo');
+      
+      sourceamount.value=Amount;
+
+      //Generate GUID for idempotency
+      var myHeaders = new Headers();
+      //myHeaders.append("Authorization", "Bearer f20c2ff5-cfff-4ce6-bb7d-34e0041b11e5");
+      myHeaders.append("Authorization", "Bearer fa966fd5-2bd2-4211-a030-37bb576f954c");   //vinit
+      // myHeaders.append("Authorization", "Bearer 5dfcc19c-2e39-48b9-a778-6f35e5cbcda4"); //dishaNew
+      //myHeaders.append("Authorization", "Bearer ba442535-188e-4e60-aa02-b23a60e48d18");  //punitha
+      //myHeaders.append("Authorization", "Bearer acdf85b8-64a5-4515-b557-18f303da3115");   //vinit Latest
+      myHeaders.append("Content-Type", "application/json");
+      myHeaders.append("Cookie", "__cf_bm=8N8sjNpms46BpYbpoEbnrFa5JJTDeHzQInLQp9.IJr4-1664194259-0-AZFAwDZaZMyxwqux7J9pazqd75QMuLSdGislnRf6+R5huF0DrvkbRmGESWYC36h4R9nZsrt2QEmYzhQsRIMuMragxmRSy0jfIBBX0VApFfA1");
+      myHeaders.append("Authorization", "Bearer c7c53a94-d4c0-47f2-b96a-4c74e96c3fd9");   //karuna
+      var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+      };
+
+      var GUID;
+      var QuoteID;
+      var TransferID;
+      var SourceValue,TargetValue,Rate;;  // You will get it from CreateTranser response (needed for pouchDB)
+      var TransferCreatedOn;  // You will get it from CreateTranser response (needed for pouchDB)
+
+      fetch('https://www.uuidgenerator.net/api/guid', requestOptions)
+        .then(response => response.text())
+        .then(result => {
+          //var tempJSON = JSON.parse(result);
+          // console.log("guid :" + result);
+          //console.log(tempJSON.id);
+          GUID = result;
+        })
+        .catch(error => console.log('error', error));
+      ////////////////////////////////////////////////////////////////////////////////////////////////
+
+      async function btnClick() {
+        var confirmMessage = confirm("Are you sure want to do this transfer?");
+        if (confirmMessage == true) {
+          alert('confirmed');
+
+          var myHeaders = new Headers();
+          //myHeaders.append("Authorization", "Bearer f20c2ff5-cfff-4ce6-bb7d-34e0041b11e5");
+          //myHeaders.append("Authorization", "Bearer fa966fd5-2bd2-4211-a030-37bb576f954c"); //vinit
+          //myHeaders.append("Authorization", "Bearer 5dfcc19c-2e39-48b9-a778-6f35e5cbcda4"); //dishaNew
+          //myHeaders.append("Authorization", "Bearer ba442535-188e-4e60-aa02-b23a60e48d18");  //punitha
+          //myHeaders.append("Authorization", "Bearer acdf85b8-64a5-4515-b557-18f303da3115");   //vinit Latest
+          myHeaders.append("Authorization", "Bearer c7c53a94-d4c0-47f2-b96a-4c74e96c3fd9");   //karuna
+          myHeaders.append("Content-Type", "application/json");
+          myHeaders.append("Cookie", "__cf_bm=8N8sjNpms46BpYbpoEbnrFa5JJTDeHzQInLQp9.IJr4-1664194259-0-AZFAwDZaZMyxwqux7J9pazqd75QMuLSdGislnRf6+R5huF0DrvkbRmGESWYC36h4R9nZsrt2QEmYzhQsRIMuMragxmRSy0jfIBBX0VApFfA1");
+
+          var raw = JSON.stringify({
+
+            "sourceCurrency": sourceCurrency.value,
+            "targetCurrency": recipientCurrency.value,
+            "sourceAmount": null,
+            "targetAmount": sourceamount.value,
+            "profile": 35378862
+
+            //-VinitProfileID //34826218 //Vinitlatest //19643669 //-punitha  //   23946072//-dishaProfileId      
+          });
+
+          console.log("After Visa Suggestion - all in Price. Below is the obkj");
+          console.log("Chnages Done: Just moved value from Source to Target. So all expense on us");
+          console.log(raw);
+
+          var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+          };
+
+          fetch("https://api.transferwise.com/v2/quotes", requestOptions)
+            .then(response => response.text())
+
+            //.then(result => console.log(result))
+            .then(result => {
+              //console.log(result);
+              var tempJSON = JSON.parse(result);
+              console.log(tempJSON);
+              console.log("Discount : " + tempJSON.paymentOptions[0].fee.discount);
+              QuoteID = tempJSON.id;
+              //  displayInfo.innerHTML="quoteid: "+tempJSON.id +" "+ tempJSON.sourceCurrency;
+              // console.log("profileId :" +  23946072);
+              console.log("RecipientId : " + RecipientId)
+              console.log("quoteId :" + QuoteID);
+              console.log("GUID : " + GUID)
+
+              /**************************  CREATE TRANSFER *******************/
+
+              var myHeaders = new Headers();
+              //myHeaders.append("Authorization", "Bearer f20c2ff5-cfff-4ce6-bb7d-34e0041b11e5");
+              //myHeaders.append("Authorization", "Bearer fa966fd5-2bd2-4211-a030-37bb576f954c"); //vinit
+              //myHeaders.append("Authorization", "Bearer 5dfcc19c-2e39-48b9-a778-6f35e5cbcda4");  //dishaNew
+              //myHeaders.append("Authorization", "Bearer ba442535-188e-4e60-aa02-b23a60e48d18");  //punitha
+              //myHeaders.append("Authorization", "Bearer acdf85b8-64a5-4515-b557-18f303da3115");   //vinit Latest
+              myHeaders.append("Authorization", "Bearer c7c53a94-d4c0-47f2-b96a-4c74e96c3fd9");   //karuna
+              myHeaders.append("Content-Type", "application/json");
+              myHeaders.append("Cookie", "__cf_bm=CrQdGfKTY2LK3Zon1L83tLH_3MEBjdzm02aK.05_9Mg-1665398192-0-Ado4pRNfxTO2B0MiCKXbH5TZ7Pxc2hY1rrbGrBVd63xOEEKG+ckR46KkB+esP6H63LGVD5r7pOHkG0bvM2vjcFj7a4lPj33dymTGg/a+9l0j");
+
+              var raw = JSON.stringify({
+                "targetAccount": RecipientId,
+                "quoteUuid": QuoteID,
+                "customerTransactionId": GUID,
+                "details": {
+                  "reference": reference.value,
+                  "transferPurpose": Purpose.value//"verification.transfers.purpose.pay.bills"
+                }
+              });
+
+              var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+              };
+
+              fetch("https://api.transferwise.com/v1/transfers", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                  //console.log(result))
+                  var tempJSON = JSON.parse(result);
+                  console.log(tempJSON);
+                  if ((tempJSON.errors !== undefined) && (tempJSON.errors !== null) && (tempJSON.errors !== "")) 
+                {
+                    console.log(tempJSON.errors[0].message);
+                    alert(tempJSON.errors[0].message);
+                    displayInfo.innerText= tempJSON.errors[0].message;
+                }
+                 else 
+                {
+                    TransferID = tempJSON.id;
+                    SourceValue = tempJSON.sourceValue;
+                    TransferCreatedOn = tempJSON.created;
+                    TargetValue= tempJSON.targetValue;
+                    Rate= tempJSON.rate;
+                    console.log("TransferId : " + TransferID);
+                }
+
+                  var wisecreatetransfer = new PouchDB("https://admin:admin@1.gpsgc.com/wisecreatetransfer");
+                  var objUpload = {
+                    transferID: TransferID,
+                    Amount: SourceValue,
+                    Recipient: accountHolderNameList.options[accountHolderNameList.selectedIndex].text,
+                    TransferCreatedOn: TransferCreatedOn,
+                    reference: reference.value,
+                    sourceCurrency: sourceCurrency.value,
+                    targetCurrency: recipientCurrency.value,
+                    transferStatus: "Pending",
+                    targetValue: TargetValue,
+                    rate: Rate,
+                    PayementDetailsReferenceNo:PaymentDetailsNo
+                  }
+                  console.log(objUpload);
+                  wisecreatetransfer.post(objUpload);
+
+                  //   //****************************** FUND TRANSFER ******************************************88
+                  //   var myHeaders = new Headers();
+                  // //myHeaders.append("Authorization", "Bearer f20c2ff5-cfff-4ce6-bb7d-34e0041b11e5");
+                  //  myHeaders.append("Authorization", "Bearer fa966fd5-2bd2-4211-a030-37bb576f954c"); //vinit
+                  // //myHeaders.append("Authorization", "Bearer 5dfcc19c-2e39-48b9-a778-6f35e5cbcda4"); //dishaNew
+                  //  //myHeaders.append("Authorization", "Bearer ba442535-188e-4e60-aa02-b23a60e48d18");  //punitha
+                  //  //myHeaders.append("Authorization", "Bearer acdf85b8-64a5-4515-b557-18f303da3115");   //vinit Latest
+
+                  // myHeaders.append("Content-Type", "application/json");
+                  // myHeaders.append("Cookie", "__cf_bm=L_aKlUN8pyFn.9Uxal3dB4xqtmuU_U6mL0TaxwDX.hk-1665468766-0-AXZqTJYhr+bFl+KZqlle7X6vXafbuIUHgZN8wwT4XZubq2MhJm0Sula/DwSdM2jgSp0sg+qtjtFOs30K5eszOn6fwPferyLzByMl8nmgp602");
+
+                  // var raw = JSON.stringify({
+                  //   "type": "BALANCE"
+                  // });
+
+                  // var requestOptions = {
+                  //   method: 'POST',
+                  //   headers: myHeaders,
+                  //   body: raw,
+                  //   redirect: 'follow'
+                  // };
+
+                  // fetch('https://api.transferwise.com/v3/profiles/19430976/transfers/'+ TransferID + '/payments', requestOptions)
+                  //   .then(response => response.text())
+                  //   .then(result => console.log(result)) 
+                  //   .catch(error => console.log('error', error));
+
+                })
+
+
+            })
+            .catch(error => console.log('error', error));
+
+        } else {
+          alert('failed');
+        }
+
+      }
+      var RecipientId;
+      function OnRecipientCurrencyChanged(value) {
+        var select = document.getElementById("accountHolderNameList");
+        var length = select.options.length;
+        for (i = length - 1; i >= 0; i--) {
+          select.options[i] = null;
+        }
+        var option = document.createElement("option");
+        option.text = "Select Name";
+        accountHolderNameList.add(option);
+
+
+        var myHeaders = new Headers();
+        //myHeaders.append("Authorization", "Bearer f20c2ff5-cfff-4ce6-bb7d-34e0041b11e5");
+        //myHeaders.append("Authorization", "Bearer fa966fd5-2bd2-4211-a030-37bb576f954c"); //vinit
+        //myHeaders.append("Authorization", "Bearer 5dfcc19c-2e39-48b9-a778-6f35e5cbcda4"); //dishaNew
+        //myHeaders.append("Authorization", "Bearer ba442535-188e-4e60-aa02-b23a60e48d18");  //punitha
+        //myHeaders.append("Authorization", "Bearer acdf85b8-64a5-4515-b557-18f303da3115");   //vinit Latest
+        myHeaders.append("Authorization", "Bearer c7c53a94-d4c0-47f2-b96a-4c74e96c3fd9");   //karuna
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Cookie", "__cf_bm=8N8sjNpms46BpYbpoEbnrFa5JJTDeHzQInLQp9.IJr4-1664194259-0-AZFAwDZaZMyxwqux7J9pazqd75QMuLSdGislnRf6+R5huF0DrvkbRmGESWYC36h4R9nZsrt2QEmYzhQsRIMuMragxmRSy0jfIBBX0VApFfA1");
+
+        var requestOptions = {
+          method: 'GET',
+          headers: myHeaders,
+          redirect: 'follow'
+        };
+
+        var RecipientCurrency = recipientCurrency.value;
+
+        fetch('https://api.transferwise.com/v1/accounts?profile=35378862&currency=' + RecipientCurrency, requestOptions)
+          .then(response => response.text())
+          .then(result => {
+            var tempJSON = JSON.parse(result);
+            // console.log(tempJSON);
+            tempJSON.sort((a, b) => a.accountHolderName.localeCompare(b.accountHolderName))
+            for (var i = 0; i < tempJSON.length; i++) {
+
+              var tempRow = tempJSON[i];
+              //  console.log(tempRow);
+              /////////////////////////////////////////////
+            //  console.log(tempRow.details.bankCode);
+              let BankCodelist = listBankCode.BankCode;
+              let bankdata = BankCodelist.filter(member => member.code == tempRow.details.bankCode)
+              var bankCode;
+              if (tempRow.details.bankCode === undefined || tempRow.details.bankCode === null) {
+                bankCode = ""
+              }
+              else {
+                bankCode = " -(" + bankdata[0].title + ")";
+              }
+              //console.log(bankdata[0].title);
+              ////////////////////////////////////////////////
+              //console.log(tempRow.wisecreatetransferID+" "+ tempRow.JobNumber);
+              var opt = document.createElement('option');
+              opt.value = tempRow.id;
+              opt.innerText = tempRow.accountHolderName + bankCode + "-" + tempRow.details.accountNumber;
+              accountHolderNameList.appendChild(opt);
+             // console.log("RecipientId : " + tempRow.id)
+              // RecipientId = tempRow.id;
+              // console.log(RecipientId);
+
+            }
+
+          })
+          .catch(error => console.log('error', error));
+
+
+      }
+      function onAccountHolderSelection(value) {
+        RecipientId = value;
+        console.log(value);
+      }
+      function OnExRateChanged(value) {
+
+        creditamount.value = sourceamount.value * value;
+
+      }
+// $(document).ready(function() {
+//   $(".selec2").select2();
+// });
+    </script>
+    <style>
+      .select2-container .select2-selection--single {
+        /* background-color: #222222; */
+        background-color: lightgrey;
+        height: 35px;
+        color: black;
+
+      }
+
+      .select2.select2-container .select2-selection .select2-selection__rendered {
+        /* color:#9ea0a4; */
+        color: black;
+      }
+
+      .select2-container .select2-dropdown .select2-results ul {
+        /* background: #222222; */
+        background: lightgrey;
+        border: 1px solid #34495e;
+      }
+
+      .select2-container--default .select2-results__option--highlighted {
+        background-color: yellowgreen;
+        color: black;
+      }
+    </style>
+  </body>
+
+</html>

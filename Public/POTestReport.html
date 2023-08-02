@@ -1,0 +1,406 @@
+
+<html>
+
+   <head>
+     <!-- Required meta tags -->
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+     <title>PO Test Report</title>
+     <meta name="color-scheme" content="light dark">
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-dark.min.css" rel="stylesheet">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.2/font/bootstrap-icons.css">
+     <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/voca/1.4.0/voca.min.js">
+     </script>
+     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+     <script type="text/javascript" src="js/bankCode.js"></script>
+     <script type="text/javascript" src="js/pouchdb-7.2.1.js"></script>
+     <script type="text/javascript" src="js/pouchdb.find.js"></script>
+     <script type="text/javascript" src="js/moment.min.js"></script>
+     <title>Create Transfer</title>
+     <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)">
+     <meta name="theme-color" content="#eeeeee" media="(prefers-color-scheme: dark)">
+     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+   </head>
+ 
+   <body>
+     <div class="container">
+      <div class="mb-1">
+         <label for="Orgnization" >Organization</label>
+         <select class="form-control selec2"  id="OrgList"  onchange="OnOrgChanged(this.value); ">
+             <option value="" disabled selected hidden>Select Org</option>
+            
+         </select>
+         
+       </div>
+       <div class="mb-1">
+         <label for="PONumber" >PO Number</label>
+         <select class="form-control selec2"  id="POList" onchange="OnPOChanged(this.value); " >
+             <option value="" disabled selected hidden>Select PO</option>
+            
+         </select>
+         
+       </div>
+       <div class="mb-1">
+        <label for="Product" >Product</label>
+        <select class="form-control selec2"  id="ProductList"  >
+            <option value="" disabled selected hidden>Select Product</option>
+           
+        </select>
+        
+      </div>
+      <div class="mb-1">
+        <label for="BatchCode">BatchCode</label>
+        <input  type="text"  class="form-control" placeholder="BatchCode" id="BatchCode"  > 
+      </div>
+
+      <div class="mb-1">
+        <label for="formFile"  >Voltage/IR Test Report</label>
+        <input class="form-control" type="file" id="inputFile1" >
+        <div id="divFileList1">
+          <p>No files selected!</p>
+      </div>
+      <div class="mb-1">
+        <label for="formFile"  >Battery Photos</label>
+        <input class="form-control" type="file" id="inputFile2" >
+        <div id="divFileList2">
+          <p>No files selected!</p>
+      </div>
+      <div class="mb-1">
+        <label for="formFile"  >Summary Test Reports</label>
+        <input class="form-control" type="file" id="inputFile3" >
+        <div id="divFileList3">
+          <p>No files selected!</p>
+      </div>
+      <div class="mb-1">
+        <label for="formFile"  >Detailed Test Reports</label>
+        <input class="form-control" type="file" id="inputFile4" >
+        <div id="divFileList4">
+          <p>No files selected!</p>
+      </div>
+      </div>
+      <button type="button" class="btn btn-primary btn-block mb-4" onclick="clickbtnSubmit()">Update Info</button>
+      <br/>  <label id="lblConfirm"> </label>
+<script>
+   
+   var requestOptions = {
+  method: 'GET',
+  redirect: 'follow'
+};
+
+fetch("https://indusnode.gpsgc.com/getOrganizationList", requestOptions)
+  .then(response => response.text())
+  .then(result => {
+                        var tempJSON = JSON.parse(result);
+console.log(tempJSON);
+                        for (var i = 0; i < tempJSON.recordset.length; i++)
+                         {
+                             
+                            var tempRow = tempJSON.recordset[i];
+                           var opt = document.createElement('option');
+                            opt.value = tempRow.OrgID;
+                            opt.innerText  = tempRow.DisplayName;
+                            OrgList.appendChild(opt);
+                           
+                        }
+                     
+  })
+  .catch(error => console.log('error', error));
+
+  function OnOrgChanged(value){
+      console.log(value);
+      
+var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+     var raw = JSON.stringify({
+      OrgID: value
+                });
+
+      var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+     };
+
+
+                fetch("https://Indusnode.gpsgc.com/getPOByOrgID", requestOptions)
+                  .then(response => response.text())
+                  .then(result => {
+                    var tempJSON = JSON.parse(result);
+console.log(tempJSON); 
+
+                for (var i = 0; i < tempJSON.recordset.length; i++) {
+                 
+                    var tempRow = tempJSON.recordset[i];
+                  
+                    var opt = document.createElement('option');
+                    opt.value = tempRow.InwardId;
+                    opt.innerText  = tempRow.DocumentNo;
+                    POList.appendChild(opt);
+                  
+                }
+                                    
+                  })
+                  .catch(error => console.log('error', error));
+                }
+
+                
+  function OnPOChanged(value)
+  {
+      console.log(value);
+      
+var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+     var raw = JSON.stringify({
+      InwardId: value
+                });
+
+      var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+     };
+
+
+                fetch("https://Indusnode.gpsgc.com/getProductByPOID", requestOptions)
+                  .then(response => response.text())
+                  .then(result => {
+                    var tempJSON = JSON.parse(result);
+                    console.log(tempJSON);
+                for (var i = 0; i < tempJSON.recordset.length; i++) {
+                    
+                    var tempRow = tempJSON.recordset[i];
+                   
+                    var opt = document.createElement('option');
+                    opt.value = tempRow.InwardItemId;
+                    opt.innerText  = tempRow.ItemName;
+                    ProductList.appendChild(opt);
+                  
+                }
+                                    
+                  })
+                  .catch(error => console.log('error', error));
+                }
+
+                var FNSitVisitReport,BatteryPhotos,SummaryTestReports,DetailTestReports ;
+                var filename ;
+               
+      function clickbtnSubmit() 
+      {
+        var inputFile1 = document.getElementById("inputFile1");
+        if(inputFile1.files.length > 0) {
+          updateSiteVisitReport();
+        } 
+        var inputFile2 = document.getElementById("inputFile2");
+        if(inputFile2.files.length > 0) {
+          updateBatteryPhotos();
+        } 
+        var inputFile3 = document.getElementById("inputFile3");
+        if(inputFile3.files.length > 0) {
+          updateSummaryTestReports();
+        } 
+        var inputFile4 = document.getElementById("inputFile4");
+        if(inputFile4.files.length > 0) {
+          updateDetailTestReports();
+        }       
+         setInterval(myTimerBtnClickCode, 1000);
+         //myTimerBtnClickCode();
+       }
+     
+       updateSiteVisitReport = function()
+        {
+    var input = document.getElementById('inputFile1');
+    sendFile1(input.files[0],divFileList1);
+        }
+       function sendFile1(file,divName) {
+                const uri = "/stats";
+                const xhr = new XMLHttpRequest();
+                const fd = new FormData();
+
+                xhr.open("POST", uri, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        divName.innerHTML = "<b>File Uploaded Successfully.</b>";// handle response.
+                        // console.log(xhr.response);
+                        // console.log(xhr.responseText);
+                       // console.log(divName );
+                        var temp = xhr.responseText.replace('"', '');
+                         
+                        FNSitVisitReport = temp.replace(/[/\\?%*:,|"<>]/g, '').split(" ").join("_");
+                        //lblConfirm.innerHTML=filename;
+                        console.log(FNSitVisitReport);
+                        
+                    }
+                };
+                
+                fd.append('uploaded_file', file);
+                // Initiate a multipart/form-data upload
+                xhr.send(fd);
+                
+            }
+
+            updateBatteryPhotos= function()
+        {
+    var input = document.getElementById('inputFile2');
+    sendFile2(input.files[0],divFileList2);
+        }
+       function sendFile2(file,divName) {
+                const uri = "/stats";
+                const xhr = new XMLHttpRequest();
+                const fd = new FormData();
+
+                xhr.open("POST", uri, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        divName.innerHTML = "<b>File Uploaded Successfully.</b>";// handle response.
+                        // console.log(xhr.response);
+                        // console.log(xhr.responseText);
+                       // console.log(divName );
+                        var temp = xhr.responseText.replace('"', '');
+                         
+                        BatteryPhotos= temp.replace(/[/\\?%*:,|"<>]/g, '').split(" ").join("_");
+                        //lblConfirm.innerHTML=filename;
+                        console.log(BatteryPhotos);
+                        
+                    }
+                };
+                
+                fd.append('uploaded_file', file);
+                // Initiate a multipart/form-data upload
+                xhr.send(fd);
+                
+            }
+             
+            updateSummaryTestReports= function()
+        {
+    var input = document.getElementById('inputFile3');
+    sendFile3(input.files[0],divFileList3);
+        }
+       function sendFile3(file,divName) {
+                const uri = "/stats";
+                const xhr = new XMLHttpRequest();
+                const fd = new FormData();
+
+                xhr.open("POST", uri, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        divName.innerHTML = "<b>File Uploaded Successfully.</b>";// handle response.
+                        // console.log(xhr.response);
+                        // console.log(xhr.responseText);
+                       // console.log(divName );
+                        var temp = xhr.responseText.replace('"', '');
+                         
+                        SummaryTestReports= temp.replace(/[/\\?%*:,|"<>]/g, '').split(" ").join("_");
+                        //lblConfirm.innerHTML=filename;
+                        console.log(SummaryTestReports);
+                        
+                    }
+                };
+                
+                fd.append('uploaded_file', file);
+                // Initiate a multipart/form-data upload
+                xhr.send(fd);
+                
+            }
+
+            updateDetailTestReports= function()
+        {
+    var input = document.getElementById('inputFile4');
+    sendFile4(input.files[0],divFileList4);
+        }
+       function sendFile4(file,divName) {
+                const uri = "/stats";
+                const xhr = new XMLHttpRequest();
+                const fd = new FormData();
+
+                xhr.open("POST", uri, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        divName.innerHTML = "<b>File Uploaded Successfully.</b>";// handle response.
+                        // console.log(xhr.response);
+                        // console.log(xhr.responseText);
+                       // console.log(divName );
+                        var temp = xhr.responseText.replace('"', '');
+                         
+                        DetailTestReports= temp.replace(/[/\\?%*:,|"<>]/g, '').split(" ").join("_");
+                        //lblConfirm.innerHTML=filename;
+                        console.log(DetailTestReports);
+                        
+                    }
+                };
+                
+                fd.append('uploaded_file', file);
+                // Initiate a multipart/form-data upload
+                xhr.send(fd);
+                
+            }
+
+            function myTimerBtnClickCode() {
+        var myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/json");
+                        // var  d =  ActualSiteVisitDate.value ;
+                        // const [day, month, year] = d.split('/');
+                        // const AVdate = new Date(+year, +month - 1, +day);
+                        var raw = JSON.stringify({
+                     
+                           // "ActualVisitDate" :AVdate.toLocaleDateString(),  //ActualSiteVisitDate.value;
+                            "SystemDate": new Date(),//.toLocaleDateString(),
+                            "UploadDoc1FileName" :FNSitVisitReport,
+                             "UploadDoc2FileName" :BatteryPhotos,
+                             "UploadDoc3FileName" :SummaryTestReports,
+                             "UploadDoc4FileName" :DetailTestReports,
+                            "BatchCode" : BatchCode.value,                          
+                            "InwardId":POList.value,
+                            "ProductID":ProductList.value
+                 
+                        });
+
+                        var requestOptions = {
+                             method: 'POST',
+                             headers: myHeaders,
+                             body: raw,
+                            redirect: 'follow'
+                            };
+
+                        fetch("https://indusnode.gpsgc.com/InsertPOTestReport", requestOptions)
+                            .then(response => response.text())
+                            .then(result => console.log(result))
+                             .catch(error => console.log('error', error));
+       
+                    //*********************************************************************************
+                          lblConfirm.innerText ="Information updated successfully !!"
+                          console.log("Clicked");
+                          window.setTimeout(function(){window.location.href = "ViewPOTestReport.html";}, 500);
+                          
+     
+      }
+</script>
+            
+<!-- <style>
+   .select2-container .select2-selection--single {
+  /* background-color: #222222; */
+  background-color:  lightgrey;
+ height: 35px;
+ color: black;
+ 
+}
+.select2.select2-container .select2-selection .select2-selection__rendered  {
+/* color:#9ea0a4; */
+color:black;
+}
+.select2-container .select2-dropdown .select2-results ul {
+/* background: #222222; */
+background:  lightgrey;
+border: 1px solid #34495e;
+}
+.select2-container--default .select2-results__option--highlighted{
+ background-color: yellowgreen;
+ color: black;
+}
+ </style> -->

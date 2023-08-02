@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>View Payment</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(decodeURIComponent('%3Cscript src="js/jquery.min.js"%3E%3C/script%3E'))</script>
+    <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/22.2.3/css/dx.light.css" />
+    <script src="https://cdn3.devexpress.com/jslib/22.2.3/js/dx.all.js"></script>
+    
+  </head>
+  <body class="dx-viewport">
+    <div class="demo-container">
+      <div id="gridContainer"></div>
+      <div class="selection-summary center">
+        <div id="calculateButton"></div>
+        <div>
+           <span class="text avg-duration"> <strong>Sum Amount of Selecte row : </strong></span>
+            <span class="value" id="avg-duration" style="font-weight:bold;">0</span>
+         </div>
+      </div>
+    </div>
+  </body>
+  <script>
+
+    const testarray=[];
+    const serialNoArray=[];
+       var myHeaders = new Headers();
+                   var requestOptions = {
+                  method: 'GET',
+                  headers: myHeaders,
+                  redirect: 'follow'
+                };
+                fetch('https://indusnode.gpsgc.com/getPaymentData', requestOptions)
+                  .then(response => response.text())
+                  .then(result =>
+                   {
+                    var tempJSON = JSON.parse(result);
+                    var EngineerInfo;
+    
+                        
+                        EngineerInfo = tempJSON.recordset ;
+                    
+                 
+                    for (var i = 0; i < EngineerInfo.length; i++)
+                     {
+                       // const tempArray=  [EngineerInfo[i].SystemDate,EngineerInfo[i].ContractorName,EngineerInfo[i].U_Name, EngineerInfo[i].SAPID , EngineerInfo[i].CRNNo, EngineerInfo[i].JobNumber, EngineerInfo[i].Call_ID ];
+                        
+                        var tempnew =EngineerInfo[i];
+                        testarray.push(tempnew);
+                   
+                      }
+                    //  console.log(testarray)
+                      $(() => {
+const MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
+  let dataGrid;
+  $('#gridContainer').dxDataGrid({
+    dataSource: testarray,
+    keyExpr: 'BUPaymentId',
+    columns: [{
+            dataField: "TypeOfPayment",
+            width:150
+        }, {
+            dataField: "PayToName",
+            width:270
+        },
+         "Amount","Currency",  
+        "BusinessUnit","PayCategory", 
+        {dataField:"ReferenceNo",width:160}, 
+        {dataField:"DocumentNo",width:120}, 
+        {dataField:"VendorInvoiceNumber",width:130}, 
+        {
+            dataField: "DueDate", 
+            dataType: "date",
+        },
+        {
+            dataField: "SystemDate", 
+            dataType: "date",
+        }
+        ],
+      
+        sorting: {
+      mode: 'multiple',
+    },
+    showBorders: true,
+    columnsAutoWidth: true,
+    paging: {
+      pageSize: 10
+    },
+    pager: {
+      visible: true,
+         allowedPageSizes: [5,10, 'all'],
+      showPageSizeSelector: true,
+      showInfo: true,
+      showNavigationButtons: true,
+    },
+    filterRow: {
+      visible: true,
+      applyFilter: 'auto',
+    },
+    searchPanel: {
+      visible: true,
+      width: 240,
+      placeholder: 'Search...',
+    },
+    groupPanel: {
+      visible: true,
+    },
+    selection: {
+      mode: 'multiple',
+      deferred: true,
+    },
+    onInitialized(e) {
+      dataGrid = e.component;
+     // calculateStatistics();
+    },
+   wordWrapEnabled: true,
+        allowColumnReordering: true,
+       
+    });
+ 
+    var PaymentDetailsNo;
+function calculateStatistics() {
+    dataGrid.getSelectedRowsData().then((rowData) => {
+    //*********************************************************************************************
+    var myHeaders = new Headers();
+             myHeaders.append("Content-Type", "application/json");
+              var requestOptions = {
+                             method: 'GET',
+                             headers: myHeaders,
+                            
+                            redirect: 'follow'
+                            };
+
+                        fetch("https://indusnode.gpsgc.com/getPayDetailsMaxNo", requestOptions)
+                            .then(response => response.text())
+                            .then(result => {
+                        var temp1 = JSON.parse(result);
+                     // console.log(temp1);
+                       var finalData = temp1.recordset[0];
+                       //console.log(finalData);
+                       
+                       if  (finalData.Expr1 === undefined || finalData.Expr1 === null) 
+                             {
+                              LastDigit="0"
+                             }
+                             else
+                             {
+                             LastDigit=finalData.Expr1;
+                             }
+                             
+                             // console.log("MaxNo: " + LastDigit);
+          // //********************************************************************************************
+          LastDigit=parseInt(LastDigit) + 1;
+        //  console.log("NewNo: " + LastDigit);
+
+                   PaymentDetailsNo= "GPSPYISG" +  "-" + new Date().getFullYear() +"-" + String(LastDigit).padStart(4, '0') ;
+       
+             // console.log( "PaymentDetailsNo: " +  PaymentDetailsNo);
+                  //***********************************Insert CRN***********************************************************
+             
+                  var myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/json");
+                        
+                        var raw = JSON.stringify({
+                            "PaymentMode" : "Wise",
+                            "ReferenceNo": PaymentDetailsNo,
+                             "PaymentDate" :new Date().toLocaleDateString() 
+                        });
+
+                        var requestOptions = {
+                             method: 'POST',
+                             headers: myHeaders,
+                             body: raw,
+                            redirect: 'follow'
+                            };
+
+                        fetch("https://indusnode.gpsgc.com/InsertPaymentdetails", requestOptions)
+                            .then(response => response.text())
+                            .then(result => {
+                                        var tempJSON = JSON.parse(result);
+                                      //  console.log(tempJSON);
+                                        BUPaymentDetailsID=  tempJSON.recordset[0].BUPaymentDetailsID;
+                                       
+                                        console.log("BUPaymentDetailsID -" +BUPaymentDetailsID);
+                                        //*********************************************************************************************
+                                                let sumTotalAmount = 0;
+
+                                        for (let i = 0; i < rowData.length; i += 1) {
+                                            sumTotalAmount += rowData[i].Amount ;
+                                           // console.log("BUPaymentId -"+rowData[i].BUPaymentId);
+                                         //****************************UPDATE*****************************************************************
+                                                                
+                                             var myHeaders = new Headers();
+                                            myHeaders.append("Content-Type", "application/json");
+                                            
+                                            var raw = JSON.stringify({
+                                                "BUPaymentDetailsId" : BUPaymentDetailsID,
+                                                "BUPaymentId": rowData[i].BUPaymentId 
+                                            });
+
+                                            var requestOptions = {
+                                                method: 'PUT',
+                                                headers: myHeaders,
+                                                body: raw,
+                                                redirect: 'follow'
+                                                };
+
+                                            fetch("https://indusnode.gpsgc.com/UpdateIdInPaymet", requestOptions)
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                            var tempJSON = JSON.parse(result);
+                                                        // console.log(tempJSON);
+                                                })
+                                                .catch(error => console.log('error', error));
+
+                                         //*********************************************************************************************
+                                             
+                                        }
+                                        console.log(sumTotalAmount);
+                                        $('#avg-duration').text(sumTotalAmount || 0);
+                                      
+                                        const url = "https://indusnode.gpsgc.com/CreateTransfer.html?Amount="+sumTotalAmount +"&PaymentDetailsNo="+PaymentDetailsNo;
+                                   //  window.location.href = url;
+                                     window.open(url,"MsgWindow", "width=600,height=600"); 
+                                        //*********************************************************************************************
+                            })
+                            .catch(error => console.log('error', error));
+
+            })
+                             .catch(error => console.log('error', error));
+
+    
+      
+          
+    });
+
+   
+  }
+
+  $('#calculateButton').dxButton({
+    text: 'Get Total Amt on the selected row and Create Transfer',
+    type: 'default',
+    onClick: calculateStatistics,
+    
+  });
+
+});
+ 
+                    })
+                  .catch(error => console.log('error', error));
+    
+      
+     
+    
+                </script>
+</html>
