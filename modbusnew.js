@@ -138,6 +138,7 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
                 //console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
                 getvolatge(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
                 gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                console.log("FirstBatteryID:" + firstBatteryId+ "-" + SlaveID)
                 firstBatteryId +=NoOfBattery;
             }
 
@@ -157,7 +158,8 @@ var express = require('express');
 var app = express();
 var sql = require("mssql");
 const port = 2000
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+const { Console } = require('console');
 var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
@@ -211,7 +213,7 @@ FROM            BatteryInfo1 INNER JOIN
 app.post('/insertInTable', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
-        console.log("Connected!");
+       // console.log("Connected!");
         var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryId,DashboardVoltage) VALUES ('${req.body.No}','${req.body.Value}')`;
         var request = new sql.Request();
 
@@ -227,7 +229,7 @@ app.post('/insertInTable', jsonParser, function (req, res) {
 app.post('/insertInTemp', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
-        console.log("Connected!");
+       // console.log("Connected!");
         var sqlquery = `INSERT INTO NodeDashboardTemp (BatteryId,DashboardTemp) VALUES ('${req.body.No}','${req.body.Value}')`;
         var request = new sql.Request();
 
