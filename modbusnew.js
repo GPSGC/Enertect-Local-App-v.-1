@@ -2,7 +2,7 @@
 const modbus = require('jsmodbus')
 const net = require('net')
 let sockets = [];
-async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
+async function getvolatge(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {
@@ -15,8 +15,8 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
     socket.on('connect', function () {
         client.readHoldingRegisters(3, endRegisterCount)
             .then(function (resp) {
-                console.log("Thread runnning for : " + slaveId);
-                console.log(host + "-" + port + "-" + slaveId)
+                console.log("Voltage Thread for : " + slaveId);
+               // console.log(host + "-" + port + "-" + slaveId)
                 console.log(resp.response._body.valuesAsArray)
 
                 // console.log(resp.response._body.valuesAsArray.length)
@@ -40,6 +40,60 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
                     };
 
                     fetch("http://localhost:2000/insertInTable", requestOptions)
+                      .then(response => response.text())
+                      .then(result => console.log(result))
+                      .catch(error => console.log('error', error));
+                    //********************************************************************************************
+                    
+                  }
+                socket.end()
+            }).catch(function () {
+                console.error(require('util').inspect(arguments, {
+                    depth: null
+                }))
+                socket.end()
+            })
+    })
+
+}
+async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
+    // console.log(`Hello modbus : ${i}`);
+    const socket = new net.Socket()
+    const options = {
+        'host': host,
+        'port': port
+    }
+    const client = new modbus.client.TCP(socket, slaveId, 15000);
+    socket.on('error', console.error)
+    socket.connect(options)
+    socket.on('connect', function () {
+        client.readHoldingRegisters(910, endRegisterCount)
+            .then(function (resp) {
+                console.log("Temperature Thread : " + slaveId);
+                //console.log(host + "-" + port + "-" + slaveId)
+                console.log(resp.response._body.valuesAsArray)
+
+                // console.log(resp.response._body.valuesAsArray.length)
+                for (i=0, j=firstBatteryId; i<resp.response._body.valuesAsArray.length; i++, j++) {
+                    //console.log("1 row inserted")
+
+                    //*********************************Add in DB*****************************************
+                    var myHeaders = new Headers();
+                    myHeaders.append("Content-Type", "application/json");
+
+                    var raw = JSON.stringify({
+                        "No": j,
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                    });
+
+                    var requestOptions = {
+                      method: 'POST',
+                      headers: myHeaders,
+                      body: raw,
+                      redirect: 'follow'
+                    };
+
+                    fetch("http://localhost:2000/insertInTemp", requestOptions)
                       .then(response => response.text())
                       .then(result => console.log(result))
                       .catch(error => console.log('error', error));
@@ -82,7 +136,8 @@ async function run1(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
                 var SlaveID = upsStringInfo[i].SlaveID;
                 var NoOfBattery = upsStringInfo[i].NoOfBattery;
                 //console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
-                run1(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                getvolatge(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
                 firstBatteryId +=NoOfBattery;
             }
 
@@ -157,7 +212,23 @@ app.post('/insertInTable', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
         console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryNo,Value) VALUES ('${req.body.No}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryId,DashboardVoltage) VALUES ('${req.body.No}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInTemp', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+        console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDashboardTemp (BatteryId,DashboardTemp) VALUES ('${req.body.No}','${req.body.Value}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
