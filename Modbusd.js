@@ -29,7 +29,7 @@ async function getvolatge(i, host, port, slaveId, endRegisterCount,firstBatteryI
 
                     var raw = JSON.stringify({
                         "No": j,
-                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])/1000
                     });
 
                     var requestOptions = {
@@ -83,7 +83,7 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
 
                     var raw = JSON.stringify({
                         "No": j,
-                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])/10
                     });
 
                     var requestOptions = {
@@ -110,7 +110,61 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
     })
 
 }
+async function getcurrent(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
+    // console.log(`Hello modbus : ${i}`);
+    const socket = new net.Socket()
+    const options = {
+        'host': host,
+        'port': port
+    }
+    const client = new modbus.client.TCP(socket, slaveId, 15000);
+    socket.on('error', console.error)
+    socket.connect(options)
+    socket.on('connect', function () {
+        client.readHoldingRegisters(1817, 1)
+            .then(function (resp) {
+                console.log("Current Thread for : " + slaveId);
+               // console.log(host + "-" + port + "-" + slaveId)
+                console.log(resp.response._body.valuesAsArray)
 
+                // console.log(resp.response._body.valuesAsArray.length)
+             
+                    //*********************************Add in DB*****************************************
+                    var myHeaders = new Headers();
+                    myHeaders.append("Content-Type", "application/json");
+let decimal =resp.response._body.valuesAsArray[0];
+
+
+
+                    var raw = JSON.stringify({
+                        "StringId": slaveId,
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                    });
+
+                    var requestOptions = {
+                      method: 'POST',
+                      headers: myHeaders,
+                      body: raw,
+                      redirect: 'follow'
+                    };
+
+                    fetch("http://localhost:2000/insertInCurrent", requestOptions)
+                      .then(response => response.text())
+                      .then(result => console.log(result))
+                      .catch(error => console.log('error', error));
+                    //********************************************************************************************
+                    
+                
+                socket.end()
+            }).catch(function () {
+                console.error(require('util').inspect(arguments, {
+                    depth: null
+                }))
+                socket.end()
+            })
+    })
+
+}
 //@main
 (async () => {
 
@@ -136,8 +190,10 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
                 var SlaveID = upsStringInfo[i].SlaveID;
                 var NoOfBattery = upsStringInfo[i].NoOfBattery;
                 //console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
-                getvolatge(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-                gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+             //   getvolatge(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+              //  gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                getcurrent(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                console.log("FirstBatteryID:" + firstBatteryId+ "-" + SlaveID)
                 firstBatteryId +=NoOfBattery;
             }
 
@@ -157,7 +213,8 @@ var express = require('express');
 var app = express();
 var sql = require("mssql");
 const port = 2000
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+const { Console } = require('console');
 var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
@@ -211,8 +268,8 @@ FROM            BatteryInfo1 INNER JOIN
 app.post('/insertInTable', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
-        console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryId,DashboardVoltage) VALUES ('${req.body.No}','${req.body.Value}')`;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryId,DashboardVoltage) VALUES ('${req.body.StringId}','${req.body.Value}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -227,8 +284,24 @@ app.post('/insertInTable', jsonParser, function (req, res) {
 app.post('/insertInTemp', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
-        console.log("Connected!");
+       // console.log("Connected!");
         var sqlquery = `INSERT INTO NodeDashboardTemp (BatteryId,DashboardTemp) VALUES ('${req.body.No}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInCurrent', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeStringCurrent (BatteryConfigId,StringCurrent) VALUES ('${req.body.No}','${req.body.Value}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
