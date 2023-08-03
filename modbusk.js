@@ -196,9 +196,9 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
 }
  function conversionForCurrent(value)
 { 
-   // console.log(value);
+    console.log(value);
     let binary = value.toString(2);
-   // console.log(binary);
+    console.log(binary);
     let negPos,newbinary,CurrenDecimal;
     newbinary=binary.substring(2,binary.length);
     if(binary.substring(0,1) == 0 )

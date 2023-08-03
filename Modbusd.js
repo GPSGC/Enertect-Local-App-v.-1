@@ -134,7 +134,8 @@ async function getcurrent(i, host, port, slaveId, endRegisterCount,firstBatteryI
                     myHeaders.append("Content-Type", "application/json");
 let decimal =resp.response._body.valuesAsArray[0];
 
-
+let binary=decimal.toString(2);
+console.log(binary);
 
                     var raw = JSON.stringify({
                         "StringId": slaveId,
