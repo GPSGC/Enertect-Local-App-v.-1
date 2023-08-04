@@ -171,7 +171,7 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
                   myHeaders.append("Content-Type", "application/json");
                  var raw = JSON.stringify({
                       "No": i+1,
-                    "Value": conversionForCurrent(resp.response._body.valuesAsArray[1]) 
+                    "Value": conversionForCurrent(resp.response._body.valuesAsArray[1]) /10
                   });
                   var requestOptions = {
                     method: 'POST',
@@ -197,7 +197,7 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
  function conversionForCurrent(value)
 { 
     console.log(value);
-    let binary = value.toString(2);
+    let binary = value.toString(2).padStart(16, '0');
     console.log(binary);
     let negPos,newbinary,CurrenDecimal;
     newbinary=binary.substring(2,binary.length);
@@ -249,8 +249,8 @@ function BinaryToDecimal(binary) {
                 var NoOfBattery = upsStringInfo[i].NoOfBattery;
                  console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
                  getvolatge(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-                 gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-                 getStringVoltageandATandCurrent(i, IPAddress, COMPort, SlaveID, NoOfBattery);
+                  gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                getStringVoltageandATandCurrent(i, IPAddress, COMPort, SlaveID, NoOfBattery);
                 conversionForCurrent(32769);
                 console.log("FirstBatteryID:" + firstBatteryId+ "-" + SlaveID)
                 firstBatteryId +=NoOfBattery;
