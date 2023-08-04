@@ -110,7 +110,7 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
     })
 
 }
-async function getcurrent(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
+async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegisterCount) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {
@@ -121,41 +121,69 @@ async function getcurrent(i, host, port, slaveId, endRegisterCount,firstBatteryI
     socket.on('error', console.error)
     socket.connect(options)
     socket.on('connect', function () {
-        client.readHoldingRegisters(1817, 1)
+        client.readHoldingRegisters(1816, 5)
             .then(function (resp) {
-                console.log("Current Thread for : " + slaveId);
-               // console.log(host + "-" + port + "-" + slaveId)
+                console.log("StringVoltage Thread : " + slaveId);
+                //console.log(host + "-" + port + "-" + slaveId)
                 console.log(resp.response._body.valuesAsArray)
-
-                // console.log(resp.response._body.valuesAsArray.length)
-             
-                    //*********************************Add in DB*****************************************
+                var strVoltage=resp.response._body.valuesAsArray[0]/10 ;
+                var at=resp.response._body.valuesAsArray[4]/10 ;
+                console.log(strVoltage +" - " +at)
+                
+                    //*********************************Add StrVolt in DB*****************************************
                     var myHeaders = new Headers();
                     myHeaders.append("Content-Type", "application/json");
-let decimal =resp.response._body.valuesAsArray[0];
-
-let binary=decimal.toString(2);
-console.log(binary);
-
-                    var raw = JSON.stringify({
-                        "StringId": slaveId,
-                      "Value": parseInt(resp.response._body.valuesAsArray[i])
+                   var raw = JSON.stringify({
+                        "No": i+1,
+                      "Value": resp.response._body.valuesAsArray[0]/10
                     });
-
                     var requestOptions = {
                       method: 'POST',
                       headers: myHeaders,
                       body: raw,
                       redirect: 'follow'
                     };
-
-                    fetch("http://localhost:2000/insertInCurrent", requestOptions)
+                    fetch("http://localhost:1234/insertInStringVoltage", requestOptions)
                       .then(response => response.text())
                       .then(result => console.log(result))
                       .catch(error => console.log('error', error));
-                    //********************************************************************************************
-                    
-                
+                    //************************************************************************************** 
+                    //*********************************Add AT in DB*****************************************
+                      var myHeaders = new Headers();
+                      myHeaders.append("Content-Type", "application/json");
+                     var raw = JSON.stringify({
+                          "No": i+1,
+                        "Value": resp.response._body.valuesAsArray[4]/10
+                      });
+                      var requestOptions = {
+                        method: 'POST',
+                        headers: myHeaders,
+                        body: raw,
+                        redirect: 'follow'
+                      };
+                      fetch("http://localhost:1234/insertInAT", requestOptions)
+                        .then(response => response.text())
+                        .then(result => console.log(result))
+                        .catch(error => console.log('error', error));
+                      //********************************************************************************************
+                  //*********************************Add StringCurrent in DB*****************************************
+                  var myHeaders = new Headers();
+                  myHeaders.append("Content-Type", "application/json");
+                 var raw = JSON.stringify({
+                      "No": i+1,
+                    "Value": conversionForCurrent(resp.response._body.valuesAsArray[1]) /10
+                  });
+                  var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                  };
+                  fetch("http://localhost:1234/insertInStringCurrent", requestOptions)
+                    .then(response => response.text())
+                    .then(result => console.log(result))
+                    .catch(error => console.log('error', error));
+                  //********************************************************************************************
                 socket.end()
             }).catch(function () {
                 console.error(require('util').inspect(arguments, {
@@ -166,6 +194,35 @@ console.log(binary);
     })
 
 }
+ function conversionForCurrent(value)
+{ 
+    console.log(value);
+    let binary = value.toString(2).padStart(16, '0');
+    console.log(binary);
+    let negPos,newbinary,CurrenDecimal;
+    newbinary=binary.substring(2,binary.length);
+    if(binary.substring(0,1) == 0 )
+    {       
+        negPos=1;
+    }
+    else
+    {
+        negPos=-1;
+    }
+    CurrenDecimal=BinaryToDecimal(newbinary);
+    CurrenDecimal = CurrenDecimal * negPos;
+    console.log(CurrenDecimal);
+    return CurrenDecimal;
+}
+function BinaryToDecimal(binary) {
+    let decimal = 0;
+    let binaryLength = binary.length;
+    for (let i = binaryLength - 1; i >= 0; i--) {
+     if (binary[i] == '1')
+      decimal += Math.pow(2, binaryLength - 1 - i);
+     }
+     return decimal;
+    }
 //@main
 (async () => {
 
@@ -193,7 +250,7 @@ console.log(binary);
                 //console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
              //   getvolatge(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
               //  gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-                getcurrent(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+              getStringVoltageandATandCurrent(i, IPAddress, COMPort, SlaveID, NoOfBattery);
                 console.log("FirstBatteryID:" + firstBatteryId+ "-" + SlaveID)
                 firstBatteryId +=NoOfBattery;
             }
