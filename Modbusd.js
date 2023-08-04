@@ -120,7 +120,8 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
     const client = new modbus.client.TCP(socket, slaveId, 15000);
     socket.on('error', console.error)
     socket.connect(options)
-    socket.on('connect', function () {
+    socket.on('connect', function ()
+     {
         client.readHoldingRegisters(1816, 5)
             .then(function (resp) {
                 console.log("StringVoltage Thread : " + slaveId);
@@ -147,7 +148,7 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
                       .then(response => response.text())
                       .then(result => console.log(result))
                       .catch(error => console.log('error', error));
-                    //************************************************************************************** 
+                    
                     //*********************************Add AT in DB*****************************************
                       var myHeaders = new Headers();
                       myHeaders.append("Content-Type", "application/json");
@@ -165,13 +166,14 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
                         .then(response => response.text())
                         .then(result => console.log(result))
                         .catch(error => console.log('error', error));
-                      //********************************************************************************************
+                     
                   //*********************************Add StringCurrent in DB*****************************************
+                  var strCurrent=conversionForCurrent(resp.response._body.valuesAsArray[1]) /10;
                   var myHeaders = new Headers();
                   myHeaders.append("Content-Type", "application/json");
                  var raw = JSON.stringify({
                       "No": i+1,
-                    "Value": conversionForCurrent(resp.response._body.valuesAsArray[1]) /10
+                    "Value": strCurrent,
                   });
                   var requestOptions = {
                     method: 'POST',
@@ -192,6 +194,11 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
                 socket.end()
             })
     })
+
+    if (strVoltage==325 && strCurrent==-5) 
+    {
+
+    }
 
 }
  function conversionForCurrent(value)
