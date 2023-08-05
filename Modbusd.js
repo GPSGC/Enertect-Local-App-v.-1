@@ -110,7 +110,7 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
     })
 
 }
-async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegisterCount) {
+async function getStringVoltageandATandCurrent(i, host, port, slaveId, NoOfBattery) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {
@@ -185,7 +185,17 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
                     .then(response => response.text())
                     .then(result => console.log(result))
                     .catch(error => console.log('error', error));
-                  //********************************************************************************************
+                 // ********************************************************************************************
+                  //*********************************************Check Dicharge********************************* 
+                   checkDischarge(strVoltage,strVoltage,NoOfBattery);
+                  
+                   if (checkDischarge)
+                   {
+                    console.log("Start Discharge");
+                    
+                   }
+                    //********************************************************************************************
+                  
                 socket.end()
             }).catch(function () {
                 console.error(require('util').inspect(arguments, {
@@ -195,10 +205,7 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
             })
     })
 
-    if (strVoltage==325 && strCurrent==-5) 
-    {
 
-    }
 
 }
  function conversionForCurrent(value)
@@ -230,6 +237,26 @@ function BinaryToDecimal(binary) {
      }
      return decimal;
     }
+function checkDischarge(strVoltage,strCurrent,NoOfBattery)
+{
+    if (strVoltage != 0  && strCurrent != 0)  
+    {
+        console.log("Discharge Loop");
+        // dischargeOn = (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);
+        dischargeOn = (strVoltage >50) && (strCurrent>1);
+        dischargeOff = (strVoltage <50) && (strCurrent<1);
+        if (dischargeOn)
+        {
+            m_discharge=true;
+        }
+        if (dischargeOff && m_discharge)
+        {
+            m_discharge=false;
+        }
+        
+    }
+     return m_discharge;
+}
 //@main
 (async () => {
 
