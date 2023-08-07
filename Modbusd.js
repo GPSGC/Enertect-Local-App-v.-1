@@ -58,7 +58,7 @@ async function getvolatge(i, host, port, slaveId, endRegisterCount,firstBatteryI
     })
 
 }
-async function getDischargevolatge(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
+async function getDischargevolatge(i, host, port,slaveId,firstBatteryId,lastTimeId) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {
@@ -80,7 +80,9 @@ async function getDischargevolatge(i, host, port, slaveId, endRegisterCount,firs
                     myHeaders.append("Content-Type", "application/json");
                     var raw = JSON.stringify({
                         "No": j,
-                      "Value": parseInt(resp.response._body.valuesAsArray[i])/1000
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])/1000,
+                      "TimeId" : lastTimeId,
+                      "slaveId":slaveId,
                     });
 
                     var requestOptions = {
@@ -90,12 +92,11 @@ async function getDischargevolatge(i, host, port, slaveId, endRegisterCount,firs
                       redirect: 'follow'
                     };
 
-                    fetch("http://localhost:2000/insertDischargeVoltage", requestOptions)
+                    fetch("http://localhost:2000/insertInDischargeVoltage", requestOptions)
                       .then(response => response.text())
                       .then(result => console.log(result))
                       .catch(error => console.log('error', error));
-                    //********************************************************************************************
-                    
+                  
                   }
                 socket.end()
             }).catch(function () {
@@ -319,7 +320,7 @@ async function getDischarge(i, host, port, slaveId, endRegisterCount,firstBatter
     socket.on('connect', function ()
      {
         var startdischarge= new Date().toLocaleDateString();
-        inserdichargerecord(slaveid,startdischarge)
+        inserdichargerecord(i, host, port,slaveId,startdischarge,firstBatteryId)
         socket.end()
             .catch(function ()
              {
@@ -332,7 +333,7 @@ async function getDischarge(i, host, port, slaveId, endRegisterCount,firstBatter
     })
 
 }
-function inserdichargerecord(slaveid,startdischarge)
+function inserdichargerecord(i, host, port,slaveId,startdischarge,firstBatteryId)
 {
     
         //*********************************Add in DB*****************************************
@@ -378,10 +379,11 @@ function inserdichargerecord(slaveid,startdischarge)
                 .then(result => {
                   var tempJSON = JSON.parse(result);
                   console.log(tempJSON);
-
+                  lastTimeId = tempJSON.recordset[0].NodeDischargeRecordTimeId;
                 })
                 .catch(error => console.log('error', error));
-              console.log("DischargeRecordTime");
+             //************************************************** Insert Voltage/Temp/SC/ST**************************************/
+             getDischargevolatge(i, host, port,slaveId,firstBatteryId,lastTimeId);
           }
             )
           .catch(error => console.log('error', error));
@@ -554,6 +556,22 @@ app.post('/insertIndichargerecordTime', jsonParser, function (req, res) {
         if (err) throw err;
        // console.log("Connected!");
         var sqlquery = `INSERT INTO NodeDischargeRecordTime (NodeDischargeRecordId,DischargeRecordTime) VALUES ('${req.body.slaveId}','${req.body.startdischarge}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInDischargeVoltage', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeVoltage (BatteryID,DischargeVoltage,NodeDischargeRecordTimeId,StringId) VALUES ('${req.body.No}','${req.body.Value}','${req.body.TimeId}','${req.body.slaveId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
