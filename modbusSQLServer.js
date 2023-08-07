@@ -135,3 +135,19 @@ app.post('/insertInStringCurrent', jsonParser, function (req, res) {
     });
 
 });
+app.post('/insertInIR', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDashboardIR (BatteryId,DashboardIR) VALUES ('${req.body.No}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});

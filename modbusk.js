@@ -9,18 +9,29 @@ async function getDashboard(i, host, port, slaveId, endRegisterCount,firstBatter
     const socket = new net.Socket()
     const options = {'host': host,'port': port}
     const client = new modbus.client.TCP(socket, slaveId, 15000);
-    socket.on('error', console.error)
-    socket.connect(options)
+    
     socket.on('connect', function () {
         //*****************Read Voltage*****************
         client.readHoldingRegisters(3, endRegisterCount)
         .then(function (resp) {
+            
             console.log("Voltage Thread for : " + slaveId);
            // console.log(host + "-" + port + "-" + slaveId)
             console.log(resp.response._body.valuesAsArray)
 
             insertVoltage(resp.response._body.valuesAsArray,firstBatteryId)
-            socket.end()
+            // socket.end()
+        })
+        //*****************Read IR*****************
+        client.readHoldingRegisters(306, endRegisterCount)
+        .then(function (resp) {
+            
+            console.log("IR Thread for : " + slaveId);
+           // console.log(host + "-" + port + "-" + slaveId)
+            console.log(resp.response._body.valuesAsArray)
+
+            insertIR(resp.response._body.valuesAsArray,firstBatteryId)
+            // socket.end()
         })
           //*****************Read Temperature*****************
         client.readHoldingRegisters(909, endRegisterCount)
@@ -31,42 +42,45 @@ async function getDashboard(i, host, port, slaveId, endRegisterCount,firstBatter
 
                 insertTemperature(resp.response._body.valuesAsArray,firstBatteryId);
                 
-                socket.end()
+               // socket.end()
             })
             //*****************Read SV/SV/AT*****************
-        // client.readHoldingRegisters(1816, 5)
-        //     .then(function (resp) {
-        //         console.log("StringVoltage Thread : " + slaveId);
-        //         //console.log(host + "-" + port + "-" + slaveId)
-        //         console.log(resp.response._body.valuesAsArray)
-        //           strVoltage=resp.response._body.valuesAsArray[0]/10 ;
-        //           at=resp.response._body.valuesAsArray[4]/10 ;
-        //           strCurrent=conversionForCurrent(resp.response._body.valuesAsArray[1]) /10;
-        //         // console.log(strVoltage +" - " +at + " - " + strCurrent);
+        client.readHoldingRegisters(1816, 5)
+            .then(function (resp) {
+                console.log("StringVoltage Thread : " + slaveId);
+                //console.log(host + "-" + port + "-" + slaveId)
+                 console.log(resp.response._body.valuesAsArray)
+                  strVoltage=resp.response._body.valuesAsArray[0]/10 ;
+                  at=resp.response._body.valuesAsArray[4]/10 ;
+                  strCurrent=conversionForCurrent(resp.response._body.valuesAsArray[1]) /10;
+                // console.log(strVoltage +" - " +at + " - " + strCurrent);
                 
-        //               insertStrVoltage(i,strVoltage);
-        //               insertAT(i,at);
-        //               insertStrCurrent(i,strCurrent);
-        //            //*********************************************Check Dicharge********************************* 
-        //         //    checkDischarge(strVoltage,strVoltage,NoOfBattery);
+                      insertStrVoltage(i,strVoltage);
+                      insertAT(i,at);
+                      insertStrCurrent(i,strCurrent);
+                   //*********************************************Check Dicharge********************************* 
+                //    checkDischarge(strVoltage,strVoltage,NoOfBattery);
                   
-        //         //    if (checkDischarge)
-        //         //    {
-        //         //     console.log("Start Discharge");
+                //    if (checkDischarge)
+                //    {
+                //     console.log("Start Discharge");
                     
-        //         //    }
-        //             //********************************************************************************************
-        //          //socket.end()
-        //     })
+                //    }
+                    //********************************************************************************************
+                  //socket.end()
+            })
             .catch(function () {
                 console.error(require('util').inspect(arguments, {
                     depth: null
                 }))
                 socket.end()
+                 
+               
             })
-            // socket.end()
+              //socket.end()
     })
-
+    socket.on('error', console.error)
+    socket.connect(options)
 }
  
 function conversionForCurrent(value)
@@ -86,7 +100,7 @@ function conversionForCurrent(value)
     }
     CurrenDecimal=BinaryToDecimal(newbinary);
     CurrenDecimal = CurrenDecimal * negPos;
-    console.log(CurrenDecimal);
+    //console.log(CurrenDecimal);
     return CurrenDecimal;
 }
 function BinaryToDecimal(binary) {
@@ -183,6 +197,35 @@ function insertVoltage(value,firstBatteryId)
         };
 
         fetch("http://localhost:1234/insertInTable", requestOptions)
+          .then(response => response.text())
+          .then(result => console.log(result))
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+        
+      }
+}
+function insertIR(value,firstBatteryId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+        //console.log("1 row inserted")
+
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "No": j,
+          "Value": parseInt(value[i])/1000
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1234/insertInIR", requestOptions)
           .then(response => response.text())
           .then(result => console.log(result))
           .catch(error => console.log('error', error));
