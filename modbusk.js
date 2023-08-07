@@ -200,8 +200,7 @@ function insertVoltage(value,firstBatteryId)
           .then(response => response.text())
           .then(result => console.log(result))
           .catch(error => console.log('error', error));
-        //********************************************************************************************
-        
+       
       }
 }
 function insertIR(value,firstBatteryId)
@@ -236,7 +235,7 @@ function insertIR(value,firstBatteryId)
 function insertTemperature(value,firstBatteryId)
 {
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
-        //console.log("1 row inserted")
+       
 
         //*********************************Add in DB*****************************************
         var myHeaders = new Headers();
@@ -258,8 +257,7 @@ function insertTemperature(value,firstBatteryId)
           .then(response => response.text())
           .then(result => console.log(result))
           .catch(error => console.log('error', error));
-        //********************************************************************************************
-        
+       
       }
 }
 function checkDischarge(strVoltage,strCurrent,NoOfBattery)

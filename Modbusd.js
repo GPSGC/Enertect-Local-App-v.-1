@@ -2,6 +2,8 @@
 const modbus = require('jsmodbus')
 const net = require('net')
 let sockets = [];
+let dischargeOn,dischargeOff,m_discharge;
+var lastDischargerecordId,lastTimeId;
 async function getvolatge(i, host, port, slaveId, endRegisterCount,firstBatteryId) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
@@ -45,6 +47,56 @@ async function getvolatge(i, host, port, slaveId, endRegisterCount,firstBatteryI
                       .catch(error => console.log('error', error));
                     //********************************************************************************************
                     
+                  }
+                socket.end()
+            }).catch(function () {
+                console.error(require('util').inspect(arguments, {
+                    depth: null
+                }))
+                socket.end()
+            })
+    })
+
+}
+async function getDischargevolatge(i, host, port,slaveId,firstBatteryId,lastTimeId) {
+    // console.log(`Hello modbus : ${i}`);
+    const socket = new net.Socket()
+    const options = {
+        'host': host,
+        'port': port
+    }
+    const client = new modbus.client.TCP(socket, slaveId, 15000);
+    socket.on('error', console.error)
+    socket.connect(options)
+    socket.on('connect', function () {
+        client.readHoldingRegisters(3, endRegisterCount)
+            .then(function (resp) {
+                console.log("Discharge Voltage Thread for : " + slaveId);            
+                console.log(resp.response._body.valuesAsArray)
+             // console.log(resp.response._body.valuesAsArray.length)
+                for (i=0, j=firstBatteryId; i<resp.response._body.valuesAsArray.length; i++, j++) {
+                   
+                    var myHeaders = new Headers();
+                    myHeaders.append("Content-Type", "application/json");
+                    var raw = JSON.stringify({
+                        "No": j,
+                      "Value": parseInt(resp.response._body.valuesAsArray[i])/1000,
+                      "TimeId" : lastTimeId,
+                      "slaveId":slaveId,
+                    });
+
+                    var requestOptions = {
+                      method: 'POST',
+                      headers: myHeaders,
+                      body: raw,
+                      redirect: 'follow'
+                    };
+
+                    fetch("http://localhost:2000/insertInDischargeVoltage", requestOptions)
+                      .then(response => response.text())
+                      .then(result => console.log(result))
+                      .catch(error => console.log('error', error));
+                  
                   }
                 socket.end()
             }).catch(function () {
@@ -110,7 +162,7 @@ async function gettemperature(i, host, port, slaveId, endRegisterCount,firstBatt
     })
 
 }
-async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegisterCount) {
+async function getStringVoltageandATandCurrent(i, host, port, slaveId, NoOfBattery,firstBatteryId) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {
@@ -185,7 +237,18 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
                     .then(response => response.text())
                     .then(result => console.log(result))
                     .catch(error => console.log('error', error));
-                  //********************************************************************************************
+                
+                  //*********************************************Check Dicharge********************************* 
+                   checkDischarge(strVoltage,strVoltage,NoOfBattery);
+                  
+                   if (checkDischarge)
+                   {
+                    console.log("Start Discharge");
+                   getDischarge(i, host, port, slaveID, NoOfBattery,firstBatteryId);  
+                               
+                   }
+                    //********************************************************************************************
+                  
                 socket.end()
             }).catch(function () {
                 console.error(require('util').inspect(arguments, {
@@ -195,10 +258,7 @@ async function getStringVoltageandATandCurrent(i, host, port, slaveId, endRegist
             })
     })
 
-    if (strVoltage==325 && strCurrent==-5) 
-    {
 
-    }
 
 }
  function conversionForCurrent(value)
@@ -230,6 +290,105 @@ function BinaryToDecimal(binary) {
      }
      return decimal;
     }
+function checkDischarge(strVoltage,strCurrent,NoOfBattery)
+{
+    if (strVoltage != 0  && strCurrent != 0)  
+    {
+        console.log("Discharge Loop");
+        // dischargeOn = (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);
+        dischargeOn = (strVoltage >50) && (strCurrent> -2);
+        dischargeOff = (strVoltage <50) && (strCurrent< -2);
+        if (dischargeOn)
+        {
+            m_discharge=true;
+        }
+        if (dischargeOff && m_discharge)
+        {
+            m_discharge=false;
+        }
+        
+    }
+     return m_discharge;
+}
+async function getDischarge(i, host, port, slaveId, endRegisterCount,firstBatteryId,NoOfBattery) {
+    // console.log(`Hello modbus : ${i}`);
+    const socket = new net.Socket()
+    const options = {'host': host,'port': port}
+    const client = new modbus.client.TCP(socket, slaveId, 15000);
+    socket.on('error', console.error)
+    socket.connect(options)
+    socket.on('connect', function ()
+     {
+        var startdischarge= new Date().toLocaleDateString();
+        inserdichargerecord(i, host, port,slaveId,startdischarge,firstBatteryId)
+        socket.end()
+            .catch(function ()
+             {
+                console.error(require('util').inspect(arguments, {
+                    depth: null
+                }))
+                socket.end()
+            })
+            // socket.end()
+    })
+
+}
+function inserdichargerecord(i, host, port,slaveId,startdischarge,firstBatteryId)
+{
+    
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "StringId": slaveid,
+          "StartDischarge": startdischarge,
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1234/insertIndichargerecord", requestOptions)
+          .then(response => response.text())
+          .then(result => {
+            var tempJSON = JSON.parse(result);
+            console.log(tempJSON);
+            lastDischargerecordId = tempJSON.recordset[0].NodeDischargeRecordId;
+             console.log(lastDischargerecordId );
+              //*****************************************Insert Record Detail*****************************************************
+              var myHeaders = new Headers();
+              myHeaders.append("Content-Type", "application/json");
+              var raw = JSON.stringify({
+                "NodeDischargeRecordId": lastDischargerecordId,
+                "DischargeRecordTime": new Date().toLocaleDateString,
+              });
+
+              var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+              };
+
+              fetch("https://input.gpsgc.com/insertInDischargeRecordTime", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                  var tempJSON = JSON.parse(result);
+                  console.log(tempJSON);
+                  lastTimeId = tempJSON.recordset[0].NodeDischargeRecordTimeId;
+                })
+                .catch(error => console.log('error', error));
+             //************************************************** Insert Voltage/Temp/SC/ST**************************************/
+             getDischargevolatge(i, host, port,slaveId,firstBatteryId,lastTimeId);
+          }
+            )
+          .catch(error => console.log('error', error));
+      
+}
 //@main
 (async () => {
 
@@ -255,9 +414,7 @@ function BinaryToDecimal(binary) {
                 var SlaveID = upsStringInfo[i].SlaveID;
                 var NoOfBattery = upsStringInfo[i].NoOfBattery;
                 //console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
-             //   getvolatge(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-              //  gettemperature(i, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-              getStringVoltageandATandCurrent(i, IPAddress, COMPort, SlaveID, NoOfBattery);
+             //  //
                 console.log("FirstBatteryID:" + firstBatteryId+ "-" + SlaveID)
                 firstBatteryId +=NoOfBattery;
             }
@@ -367,6 +524,54 @@ app.post('/insertInCurrent', jsonParser, function (req, res) {
         if (err) throw err;
        // console.log("Connected!");
         var sqlquery = `INSERT INTO NodeStringCurrent (BatteryConfigId,StringCurrent) VALUES ('${req.body.No}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertIndichargerecord', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeRecord (StringId,StartDisharge) VALUES ('${req.body.slaveId}','${req.body.startdischarge}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertIndichargerecordTime', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeRecordTime (NodeDischargeRecordId,DischargeRecordTime) VALUES ('${req.body.slaveId}','${req.body.startdischarge}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInDischargeVoltage', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeVoltage (BatteryID,DischargeVoltage,NodeDischargeRecordTimeId,StringId) VALUES ('${req.body.No}','${req.body.Value}','${req.body.TimeId}','${req.body.slaveId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
