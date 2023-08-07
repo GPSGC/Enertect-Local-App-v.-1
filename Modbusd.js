@@ -571,7 +571,7 @@ app.post('/insertInDischargeVoltage', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDischargeVoltage (BatteryID,DischargeVoltage,NodeDischargeRecordTimeId,StringId) VALUES ('${req.body.No}','${req.body.Value}','${req.body.TimeId}','${req.body.slaveId}')`;
+        var sqlquery = `INSERT INTO NodeDischargeVoltage (BatteryID,DischargeVoltage,NodeDischargeRecordTimeId,StringId) VALUES ('${req.body.No}','${req.body.Value}','${req.body.TimeId}','${req.body.StringId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {

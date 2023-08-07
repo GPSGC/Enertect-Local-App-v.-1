@@ -151,3 +151,128 @@ app.post('/insertInIR', jsonParser, function (req, res) {
     });
 
 });
+app.post('/insertIndichargerecord', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeRecord (UPSID,StartDischarge) OUTPUT Inserted.NodeDischargeRecordId  VALUES ('${req.body.UPSID}','${req.body.startdischarge}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertIndischargerecordTime', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeRecordTime (NodeDischargeRecordId,DischargeRecordTime) OUTPUT Inserted.NodeDischargeRecordTimeId VALUES ('${req.body.NodeDischargeRecordId}','${req.body.DischargeRecordTime}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInDischargeVoltage', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeVoltage (BatteryID,DischargeVoltage,NodeDischargeRecordTimeId,StringId) VALUES ('${req.body.No}','${req.body.Value}','${req.body.TimeId}','${req.body.StringId}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInDischargeStrVoltage', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeStringVoltage (StringId,DischargeStringVoltage,NodeDischargeRecordTimeId) VALUES ('${req.body.StringId}','${req.body.Value}','${req.body.NodeDischargeRecordTimeId}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInDischargeStrCurrent', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDischargeStringCurrent (StringId,DischargeCurrent,NodeDischargeRecordTimeId) VALUES ('${req.body.StringId}','${req.body.Value}','${req.body.NodeDischargeRecordTimeId}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/CheckREcordByUPSIDAndEndDisharge', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT COUNT(*) AS Expr1 FROM  LoadTestInformation WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) `;
+        var request = new sql.Request();
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/ReturnLoadTestInfoIDByUPSID', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT LoadTestInfoID FROM LoadTestInformation WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) ORDER BY LoadTestInfoID DESC`;
+        var request = new sql.Request();
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/UpdateStopDischargeByUPSID', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `UPDATE    LoadTestInformation SET EndDischarge = @EndDischarge WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) `;
+        var request = new sql.Request();
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
