@@ -1,7 +1,7 @@
 const modbus = require('jsmodbus')
 const net = require('net');
-
-async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger, displayName) {
+const moduleSql= require('./NodeModbusSQL.js');
+async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger,firstBatteryId, displayName) {
 
     const socket = new net.Socket()
     const client = new modbus.client.TCP(socket, bankDeviceId, 15000);
@@ -12,6 +12,7 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
             .then(function (resp) {
                 console.log(displayName);
                 console.log(resp.response._body.valuesAsArray);
+                insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
                 socket.end()
 
             }).catch(function (err) {
@@ -20,70 +21,87 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
             })
     })
 }
+function insertDashboardVoltage(value,firstBatteryId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+        //console.log("1 row inserted")
+        console.log(j);
+         
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
 
+        var raw = JSON.stringify({
+            "BatteryId": j          
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1212/checkDashboardVoltageByBatteryID", requestOptions)
+          .then(response => response.text())
+          .then(result =>{
+           // console.log(result)
+            var tempJSON = JSON.parse(result);           
+            var count=tempJSON.recordset[0].Count;
+           
+            if (count == 0)
+            {
+                console.log(j);
+            }
+      
+          })
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+        
+  }
+}
+function delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+}
+
+//Main
 (async () => {
  
-   function execute(){
-  
-    modbusReadGet('192.168.0.101', '502', 17, 3, 35, "Battery Voltage -17")
-    modbusReadGet('192.168.0.101', '502', 18, 3, 35, "Battery Voltage -18")  
-    modbusReadGet('192.168.0.101', '502', 19, 3, 35, "Battery Voltage -19")  
-    modbusReadGet('192.168.0.101', '502', 20, 3, 35, "Battery Voltage -20")      
-    
-    modbusReadGet('192.168.0.101', '502', 33, 3, 35, "Battery Voltage -33")
-    modbusReadGet('192.168.0.101', '502', 34, 3, 35, "Battery Voltage -34")  
-    modbusReadGet('192.168.0.101', '502', 35, 3, 35, "Battery Voltage -35")  
-    modbusReadGet('192.168.0.101', '502', 36, 3, 35, "Battery Voltage -36") 
-    
-    modbusReadGet('192.168.0.101', '502', 49, 3, 35, "Battery Voltage -49")
-    modbusReadGet('192.168.0.101', '502', 50, 3, 35, "Battery Voltage -50")  
-    modbusReadGet('192.168.0.101', '502', 51, 3, 35, "Battery Voltage -51")  
-    modbusReadGet('192.168.0.101', '502', 52, 3, 35, "Battery Voltage -52")  
-    
-    modbusReadGet('192.168.0.101', '502', 65, 3, 35, "Battery Voltage -65")
-    modbusReadGet('192.168.0.101', '502', 66, 3, 35, "Battery Voltage -66")  
-    modbusReadGet('192.168.0.101', '502', 67, 3, 35, "Battery Voltage -67")  
-    modbusReadGet('192.168.0.101', '502', 68, 3, 35, "Battery Voltage -68")  
+   //function execute(){
+   //*****************Get UPS*************************/
+   var requestOptions = {
+    method: 'GET',
+    redirect: 'follow'
+};
 
-    // modbusReadGet('192.168.0.201', '502', 81, 3, 35, "Battery Voltage -81")
-    // modbusReadGet('192.168.0.201', '502', 82, 3, 35, "Battery Voltage -82")  
-    // modbusReadGet('192.168.0.201', '502', 83, 3, 35, "Battery Voltage -83")  
-    // modbusReadGet('192.168.0.201', '502', 84, 3, 35, "Battery Voltage -84")      
-    
-    // modbusReadGet('192.168.0.201', '502', 97, 3, 35, "Battery Voltage -97")
-    // modbusReadGet('192.168.0.201', '502', 98, 3, 35, "Battery Voltage -98")  
-    // modbusReadGet('192.168.0.201', '502', 99, 3, 35, "Battery Voltage -99")  
-    // modbusReadGet('192.168.0.201', '502', 100, 3, 35, "Battery Voltage -100") 
-    
-    // modbusReadGet('192.168.0.201', '502', 113, 3, 35, "Battery Voltage -113")
-    // modbusReadGet('192.168.0.201', '502', 114, 3, 35, "Battery Voltage -114")  
-    // modbusReadGet('192.168.0.201', '502', 115, 3, 35, "Battery Voltage -115")  
-    // modbusReadGet('192.168.0.201', '502', 116, 3, 35, "Battery Voltage -116")  
-    
-    // modbusReadGet('192.168.0.201', '502', 129, 3, 35, "Battery Voltage -129")
-    // modbusReadGet('192.168.0.201', '502', 130, 3, 35, "Battery Voltage -130")  
-    // modbusReadGet('192.168.0.201', '502', 131, 3, 35, "Battery Voltage -131")  
-    // modbusReadGet('192.168.0.201', '502', 132, 3, 35, "Battery Voltage -132")  
+fetch("http://localhost:1212/getUPSStringData", requestOptions)
+    .then(response => response.text())
+    .then(result => {
+        //console.log(result))
+        var tempJSON = JSON.parse(result);
+        var upsStringInfo = tempJSON.recordset;
+        //console.log(upsInfo);
+        var firstBatteryId=1;
 
-    modbusReadGet('192.168.0.101', '502', 17, 909, 35, "Battery Temp -17")
-    modbusReadGet('192.168.0.101', '502', 18, 909, 35, "Battery Temp -18")  
-    modbusReadGet('192.168.0.101', '502', 19, 909, 35, "Battery Temp -19")  
-    modbusReadGet('192.168.0.101', '502', 20, 909, 35, "Battery Temp -20")      
+        for (var i = 0; i < upsStringInfo.length; i++) {
+            var IPAddress = upsStringInfo[i].IPAddress;
+            var COMPort = upsStringInfo[i].COMPort;
+            var SlaveID = upsStringInfo[i].SlaveID;
+            var NoOfBattery = upsStringInfo[i].NoOfBattery;
+            var StringId = upsStringInfo[i].BatteryStringID;
+            var UPSID= upsStringInfo[i].UPSID;
+             console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
+              
+             modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID)
+             
+             
+             firstBatteryId +=NoOfBattery;
+        }
+
+    })
+    .catch(error => console.log('error', error));
+   // await delay(10000); //10 sec 
     
-    modbusReadGet('192.168.0.101', '502', 33, 909, 35, "Battery Temp -33")
-    modbusReadGet('192.168.0.101', '502', 34, 909, 35, "Battery Temp -34")  
-    modbusReadGet('192.168.0.101', '502', 35, 909, 35, "Battery Temp -35")  
-    modbusReadGet('192.168.0.101', '502', 36, 909, 35, "Battery Temp -36") 
-    
-    modbusReadGet('192.168.0.101', '502', 49, 909, 35, "Battery Temp -49")
-    modbusReadGet('192.168.0.101', '502', 50, 909, 35, "Battery Temp -50")  
-    modbusReadGet('192.168.0.101', '502', 51, 909, 35, "Battery Temp -51")  
-    modbusReadGet('192.168.0.101', '502', 52, 909, 35, "Battery Temp -52")  
-    
-    modbusReadGet('192.168.0.101', '502', 65, 909, 35, "Battery Temp -65")
-    modbusReadGet('192.168.0.101', '502', 66, 909, 35, "Battery Temp -66")  
-    modbusReadGet('192.168.0.101', '502', 67, 909, 35, "Battery Temp -67")  
-    modbusReadGet('192.168.0.101', '502', 68, 909, 35, "Battery Temp -68") 
-   }
-   setInterval(execute, 1000);
+//   }
+//   setInterval(execute, 2000);
 })()
