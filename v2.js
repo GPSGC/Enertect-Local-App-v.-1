@@ -23,27 +23,31 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
 
 (async () => {
  
-   function execute(){
+//    function execute(){
   
     modbusReadGet('192.168.0.101', '502', 17, 3, 35, "Battery Voltage -17")
+    await delay(1000);
     modbusReadGet('192.168.0.101', '502', 18, 3, 35, "Battery Voltage -18")  
-    modbusReadGet('192.168.0.101', '502', 19, 3, 35, "Battery Voltage -19")  
-    modbusReadGet('192.168.0.101', '502', 20, 3, 35, "Battery Voltage -20")      
+    await delay(1000);
+    modbusReadGet('192.168.0.101', '502', 19, 3, 35, "Battery Voltage -19") 
+    await delay(1000); 
+    modbusReadGet('192.168.0.101', '502', 20, 3, 35, "Battery Voltage -20")  
+    await delay(1000);    
     
-    modbusReadGet('192.168.0.101', '502', 33, 3, 35, "Battery Voltage -33")
-    modbusReadGet('192.168.0.101', '502', 34, 3, 35, "Battery Voltage -34")  
-    modbusReadGet('192.168.0.101', '502', 35, 3, 35, "Battery Voltage -35")  
-    modbusReadGet('192.168.0.101', '502', 36, 3, 35, "Battery Voltage -36") 
+    // modbusReadGet('192.168.0.101', '502', 33, 3, 35, "Battery Voltage -33")
+    // modbusReadGet('192.168.0.101', '502', 34, 3, 35, "Battery Voltage -34")  
+    // modbusReadGet('192.168.0.101', '502', 35, 3, 35, "Battery Voltage -35")  
+    // modbusReadGet('192.168.0.101', '502', 36, 3, 35, "Battery Voltage -36") 
     
-    modbusReadGet('192.168.0.101', '502', 49, 3, 35, "Battery Voltage -49")
-    modbusReadGet('192.168.0.101', '502', 50, 3, 35, "Battery Voltage -50")  
-    modbusReadGet('192.168.0.101', '502', 51, 3, 35, "Battery Voltage -51")  
-    modbusReadGet('192.168.0.101', '502', 52, 3, 35, "Battery Voltage -52")  
+    // modbusReadGet('192.168.0.101', '502', 49, 3, 35, "Battery Voltage -49")
+    // modbusReadGet('192.168.0.101', '502', 50, 3, 35, "Battery Voltage -50")  
+    // modbusReadGet('192.168.0.101', '502', 51, 3, 35, "Battery Voltage -51")  
+    // modbusReadGet('192.168.0.101', '502', 52, 3, 35, "Battery Voltage -52")  
     
-    modbusReadGet('192.168.0.101', '502', 65, 3, 35, "Battery Voltage -65")
-    modbusReadGet('192.168.0.101', '502', 66, 3, 35, "Battery Voltage -66")  
-    modbusReadGet('192.168.0.101', '502', 67, 3, 35, "Battery Voltage -67")  
-    modbusReadGet('192.168.0.101', '502', 68, 3, 35, "Battery Voltage -68")  
+    // modbusReadGet('192.168.0.101', '502', 65, 3, 35, "Battery Voltage -65")
+    // modbusReadGet('192.168.0.101', '502', 66, 3, 35, "Battery Voltage -66")  
+    // modbusReadGet('192.168.0.101', '502', 67, 3, 35, "Battery Voltage -67")  
+    // modbusReadGet('192.168.0.101', '502', 68, 3, 35, "Battery Voltage -68")  
 
     // modbusReadGet('192.168.0.201', '502', 81, 3, 35, "Battery Voltage -81")
     // modbusReadGet('192.168.0.201', '502', 82, 3, 35, "Battery Voltage -82")  
@@ -66,24 +70,28 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
     // modbusReadGet('192.168.0.201', '502', 132, 3, 35, "Battery Voltage -132")  
 
     modbusReadGet('192.168.0.101', '502', 17, 909, 35, "Battery Temp -17")
-    modbusReadGet('192.168.0.101', '502', 18, 909, 35, "Battery Temp -18")  
+    await delay(1000);
+    modbusReadGet('192.168.0.101', '502', 18, 909, 35, "Battery Temp -18") 
+    await delay(1000); 
     modbusReadGet('192.168.0.101', '502', 19, 909, 35, "Battery Temp -19")  
-    modbusReadGet('192.168.0.101', '502', 20, 909, 35, "Battery Temp -20")      
+    await delay(1000);
+    modbusReadGet('192.168.0.101', '502', 20, 909, 35, "Battery Temp -20")   
+    await delay(1000);   
     
-    modbusReadGet('192.168.0.101', '502', 33, 909, 35, "Battery Temp -33")
-    modbusReadGet('192.168.0.101', '502', 34, 909, 35, "Battery Temp -34")  
-    modbusReadGet('192.168.0.101', '502', 35, 909, 35, "Battery Temp -35")  
-    modbusReadGet('192.168.0.101', '502', 36, 909, 35, "Battery Temp -36") 
+    // modbusReadGet('192.168.0.101', '502', 33, 909, 35, "Battery Temp -33")
+    // modbusReadGet('192.168.0.101', '502', 34, 909, 35, "Battery Temp -34")  
+    // modbusReadGet('192.168.0.101', '502', 35, 909, 35, "Battery Temp -35")  
+    // modbusReadGet('192.168.0.101', '502', 36, 909, 35, "Battery Temp -36") 
     
-    modbusReadGet('192.168.0.101', '502', 49, 909, 35, "Battery Temp -49")
-    modbusReadGet('192.168.0.101', '502', 50, 909, 35, "Battery Temp -50")  
-    modbusReadGet('192.168.0.101', '502', 51, 909, 35, "Battery Temp -51")  
-    modbusReadGet('192.168.0.101', '502', 52, 909, 35, "Battery Temp -52")  
+    // modbusReadGet('192.168.0.101', '502', 49, 909, 35, "Battery Temp -49")
+    // modbusReadGet('192.168.0.101', '502', 50, 909, 35, "Battery Temp -50")  
+    // modbusReadGet('192.168.0.101', '502', 51, 909, 35, "Battery Temp -51")  
+    // modbusReadGet('192.168.0.101', '502', 52, 909, 35, "Battery Temp -52")  
     
-    modbusReadGet('192.168.0.101', '502', 65, 909, 35, "Battery Temp -65")
-    modbusReadGet('192.168.0.101', '502', 66, 909, 35, "Battery Temp -66")  
-    modbusReadGet('192.168.0.101', '502', 67, 909, 35, "Battery Temp -67")  
-    modbusReadGet('192.168.0.101', '502', 68, 909, 35, "Battery Temp -68") 
-   }
-   setInterval(execute, 1000);
+    // modbusReadGet('192.168.0.101', '502', 65, 909, 35, "Battery Temp -65")
+    // modbusReadGet('192.168.0.101', '502', 66, 909, 35, "Battery Temp -66")  
+    // modbusReadGet('192.168.0.101', '502', 67, 909, 35, "Battery Temp -67")  
+    // modbusReadGet('192.168.0.101', '502', 68, 909, 35, "Battery Temp -68") 
+//    }
+//    setInterval(execute, 1000);
 })()
