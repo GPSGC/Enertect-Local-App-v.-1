@@ -3,7 +3,7 @@ const net = require('net')
 const moduleSql= require('./modbusSQLServer.js');
 var strVoltage,at,strCurrent;
 let dischargeOn,dischargeOff;
-async function getvolatge(host, port, slaveId, endRegisterCount,firstBatteryId) {
+async function readModbus(host, port, slaveId, endRegisterCount,firstBatteryId,startRegister,Type) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
     const options = {'host': host,'port': port}
@@ -11,12 +11,26 @@ async function getvolatge(host, port, slaveId, endRegisterCount,firstBatteryId) 
     socket.on('error', console.error)
     socket.connect(options)
     socket.on('connect', function () {
-        client.readHoldingRegisters(3, endRegisterCount)
+        client.readHoldingRegisters(startRegister, endRegisterCount)
             .then(function (resp) {
-                console.log("Voltage Thread for : " + slaveId);
+                
                // console.log(host + "-" + port + "-" + slaveId)
                 console.log(resp.response._body.valuesAsArray)
-                 insertVoltage(resp.response._body.valuesAsArray,firstBatteryId)
+                if(Type == "Voltage")
+                {
+                  console.log(Type +" Thread for : " + slaveId);
+                  insertVoltage(resp.response._body.valuesAsArray,firstBatteryId)
+                }
+                else if (Type =="IR")
+                {
+                  console.log(Type +" Thread for : " + slaveId);
+                  insertIR(resp.response._body.valuesAsArray,firstBatteryId)
+                }
+                else if (Type =="Temp")
+                {
+                  console.log(Type +" Thread for : " + slaveId);
+                  insertTemperature(resp.response._body.valuesAsArray,firstBatteryId);
+                }
                socket.end()
             }).catch(function () {
                 console.error(require('util').inspect(arguments, {
@@ -26,60 +40,7 @@ async function getvolatge(host, port, slaveId, endRegisterCount,firstBatteryId) 
             })
     })
 
-}
-async function getIR(host, port, slaveId, endRegisterCount,firstBatteryId) {
-    // console.log(`Hello modbus : ${i}`);
-    const socket = new net.Socket()
-    const options = {'host': host,'port': port}
-    const client = new modbus.client.TCP(socket, slaveId, 15000);
-    socket.on('error', console.error)
-    socket.connect(options)
-    socket.on('connect', function () {
-        client.readHoldingRegisters(306, endRegisterCount)
-        .then(function (resp) {
-            
-            console.log("IR Thread for : " + slaveId);
-           // console.log(host + "-" + port + "-" + slaveId)
-            console.log(resp.response._body.valuesAsArray)
-
-            insertIR(resp.response._body.valuesAsArray,firstBatteryId)
-            // socket.end()
-        }).catch(function () {
-                console.error(require('util').inspect(arguments, {
-                    depth: null
-                }))
-                socket.end()
-            })
-    })
-
-}
-async function gettemperature(host, port, slaveId, endRegisterCount,firstBatteryId) {
-    // console.log(`Hello modbus : ${i}`);
-    const socket = new net.Socket()
-    const options = {'host': host,'port': port}
-    const client = new modbus.client.TCP(socket, slaveId, 15000);
-    socket.on('error', console.error)
-    socket.connect(options)
-    socket.on('connect', function () {
-        client.readHoldingRegisters(909, endRegisterCount)
-            .then(function (resp) {
-                console.log("Temperature Thread : " + slaveId);
-                //console.log(host + "-" + port + "-" + slaveId)
-                console.log(resp.response._body.valuesAsArray)
-
-                insertTemperature(resp.response._body.valuesAsArray,firstBatteryId);
-                
-                socket.end()
-            })
-            .catch(function () {
-                console.error(require('util').inspect(arguments, {
-                    depth: null
-                }))
-                socket.end()
-            })
-    })
-
-}
+} 
 async function getStringVoltageandATandCurrent(StringId, host, port, slaveId,NoOfBattery,firstBatteryId,UPSID) {
     // console.log(`Hello modbus : ${i}`);
     const socket = new net.Socket()
@@ -550,10 +511,12 @@ function insertInDischargeStrCurrent(value, TimeId,stringId)
                 var UPSID= upsStringInfo[i].UPSID;
                  console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
                   
-                   getvolatge(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId,StringId);
-                   getIR(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-                   gettemperature(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
-                   getStringVoltageandATandCurrent(StringId, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId,UPSID);
+                 readModbus(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId,3,"Voltage");
+                 readModbus(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId,306,"IR");
+                 readModbus(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId,909,"Temp");
+                  //  getIR(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                  //  gettemperature(IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId);
+                  //  getStringVoltageandATandCurrent(StringId, IPAddress, COMPort, SlaveID, NoOfBattery,firstBatteryId,UPSID);
                   //conversionForCurrent(32769);
                    
                 //console.log("FirstBatteryID:" + firstBatteryId+ "-" + SlaveID)
