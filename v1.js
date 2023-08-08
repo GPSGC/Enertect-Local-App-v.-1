@@ -23,8 +23,7 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
 
 (async () => {
 
-    function functionC() 
-    {
+    
         modbusReadGet('192.168.0.101', '502', 17, 3, 35, "Battery Voltage -17")
         modbusReadGet('192.168.0.101', '502', 18, 3, 35, "Battery Voltage -18")  
         modbusReadGet('192.168.0.101', '502', 19, 3, 35, "Battery Voltage -19")  
@@ -107,9 +106,8 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
         modbusReadGet('192.168.0.201', '502', 131, 909, 35, "Battery Temperature -131")  
         modbusReadGet('192.168.0.201', '502', 132, 909, 35, "Battery Temperature -132")  
     
-     }
      
-     setInterval( functionC, 2000 );
-    
+     
+     
    
 })()
