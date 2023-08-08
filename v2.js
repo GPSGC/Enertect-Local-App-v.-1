@@ -94,4 +94,8 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
     // modbusReadGet('192.168.0.101', '502', 68, 909, 35, "Battery Temp -68") 
 //    }
 //    setInterval(execute, 5000);
+
+function delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+}
 })()
