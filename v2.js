@@ -22,12 +22,10 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
     })
 }
 function insertDashboardVoltage(value,firstBatteryId)
-
 {
- 
-    for (i=0, j=firstBatteryId; i<value.length; i++, j++)
+   for (i=0, j=firstBatteryId; i<value.length; i++, j++)
      {
-          // var value=value[i];
+           var value=value[i];
            let batteryIdinsert=j;         
         //*********************************Add in DB*****************************************
         var myHeaders = new Headers();
@@ -49,25 +47,25 @@ function insertDashboardVoltage(value,firstBatteryId)
                 console.log("checkquery-" + batteryIdinsert);
 
                 //*********************************Insert Voltage in DB*****************************************
-        var myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/json");
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
 
-        var raw = JSON.stringify({
+            var raw = JSON.stringify({
             "No": batteryIdinsert,
-          "Value": parseInt(value)/1000 //parseInt(value[i])/1000
-        });
+            "Value": parseInt(value)/1000 //parseInt(value[i])/1000
+            });
 
-        var requestOptions = { method: 'POST', headers: myHeaders, body: raw,  redirect: 'follow' };
+             var requestOptions = { method: 'POST', headers: myHeaders, body: raw,  redirect: 'follow' };
 
-        fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
-          .then(response => response.text())
-          .then(result => console.log(result))
-          .catch(error => console.log('error', error));}
-      
-      })
+             fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
+             .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));}
+             })
           .catch(error => console.log('error', error));
        
-  }
+             }
+  
 }
 function delay(time) {
     return new Promise(resolve => setTimeout(resolve, time));
