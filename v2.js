@@ -22,8 +22,12 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
     })
 }
 function insertDashboardVoltage(value,firstBatteryId)
+
 {
-    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+ 
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++)
+     {
+          // var value=value[i];
            let batteryIdinsert=j;         
         //*********************************Add in DB*****************************************
         var myHeaders = new Headers();
@@ -37,10 +41,8 @@ function insertDashboardVoltage(value,firstBatteryId)
         fetch("http://localhost:1212/checkDashboardVoltageByBatteryID", requestOptions)
           .then(response => response.text())
           .then(result =>{
-           // console.log(result)
             var tempJSON = JSON.parse(result);
-            console.log(tempJSON.recordset) ;          
-            var count=tempJSON.recordset[0].Count;
+               var count=tempJSON.recordset[0].Count;
                    
             if (count == 0)
             {
@@ -52,7 +54,7 @@ function insertDashboardVoltage(value,firstBatteryId)
 
         var raw = JSON.stringify({
             "No": batteryIdinsert,
-          "Value": parseInt(value[i])/1000
+          "Value": parseInt(value)/1000 //parseInt(value[i])/1000
         });
 
         var requestOptions = { method: 'POST', headers: myHeaders, body: raw,  redirect: 'follow' };
