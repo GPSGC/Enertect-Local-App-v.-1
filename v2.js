@@ -72,7 +72,7 @@ function insertDashboardVoltage(value,firstBatteryId)
           redirect: 'follow'
         };
 
-        fetch("http://localhost:1234/insertInDashboardVoltage", requestOptions)
+        fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
           .then(response => response.text())
           .then(result => console.log(result))
           .catch(error => console.log('error', error));
