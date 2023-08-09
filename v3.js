@@ -79,7 +79,7 @@ function insertDashboardVoltage(value,firstBatteryId)
                      
             if (count == 0)
             {
-               console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+               console.log("Insert--"+"count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
                 //console.log("checkquery :" + batteryIdinsert);
                 //*********************************Add in DB*****************************************
               var myHeaders = new Headers();
@@ -105,7 +105,7 @@ function insertDashboardVoltage(value,firstBatteryId)
             }
             else
             {
-              console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+              console.log("Update--"+"count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
               //*********************************Update in DB*****************************************
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -169,7 +169,7 @@ function insertDashboardIR(value,firstBatteryId)
                      
             if (count == 0)
             {
-               console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+               //console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
                 //console.log("checkquery :" + batteryIdinsert);
                 //*********************************Add in DB*****************************************
               var myHeaders = new Headers();
@@ -195,7 +195,7 @@ function insertDashboardIR(value,firstBatteryId)
             }
             else
             {
-              console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+              //console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
               //*********************************Update in DB*****************************************
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -259,7 +259,7 @@ function insertDashboardTemp(value,firstBatteryId)
                      
             if (count == 0)
             {
-               console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+              // console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
                 //console.log("checkquery :" + batteryIdinsert);
                 //*********************************Add in DB*****************************************
               var myHeaders = new Headers();
@@ -285,7 +285,7 @@ function insertDashboardTemp(value,firstBatteryId)
             }
             else
             {
-              console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+              //console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
               //*********************************Update in DB*****************************************
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -323,47 +323,39 @@ function delay(time) {
 //Main
 (async () => {
   log.info('NodeModbusApp Started');
+ 
    
    //*****************Loop UPS*************************/
    var upsStringInfo = await getDB();
-   console.log(upsStringInfo);
+  //console.log(upsStringInfo);
     var firstBatteryId = 9;
  
-  // for (var i = 0; i < upsStringInfo.length; i++) {
-  //   var IPAddress = upsStringInfo[i].IPAddress;
-  //   var COMPort = upsStringInfo[i].COMPort;
-  //   var SlaveID = upsStringInfo[i].SlaveID;
-  //   var NoOfBattery = upsStringInfo[i].NoOfBattery;
-  //   var StringId = upsStringInfo[i].BatteryStringID;
-  //   var UPSID = upsStringInfo[i].UPSID;
-  //   console.log(IPAddress + "-" + COMPort + "-" + SlaveID);
+  for (var i = 0; i < upsStringInfo.length; i++) {
+    var IPAddress = upsStringInfo[i].IPAddress;
+    var COMPort = upsStringInfo[i].COMPort;
+    var SlaveID = upsStringInfo[i].SlaveID;
+    var NoOfBattery = upsStringInfo[i].NoOfBattery;
+    var StringId = upsStringInfo[i].BatteryStringID;
+    var UPSID = upsStringInfo[i].UPSID;
+    console.log(IPAddress + "-" + COMPort + "-" + SlaveID);
 
-  //   modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID,StringId,"Volt")
-  //   console.log("1 hello");
-  //   modbusReadGet(IPAddress, COMPort, SlaveID, 306, NoOfBattery,firstBatteryId, "Battery IR-"+SlaveID,StringId,"IR")
-  //   console.log("2 hello");
-  //   modbusReadGet(IPAddress, COMPort, SlaveID, 909, NoOfBattery,firstBatteryId, "Battery Temp-"+SlaveID,StringId,"Temp")
-  //   console.log("3 hello");
+    modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID,StringId,"Volt")
+    modbusReadGet(IPAddress, COMPort, SlaveID, 306, NoOfBattery,firstBatteryId, "Battery IR-"+SlaveID,StringId,"IR")
+    modbusReadGet(IPAddress, COMPort, SlaveID, 909, NoOfBattery,firstBatteryId, "Battery Temp-"+SlaveID,StringId,"Temp")
+     //modbusReadGet(IPAddress, COMPort, SlaveID, 1816, 5,firstBatteryId, "Battery ATSVSC-"+SlaveID,StringId,"ATSVSC")
     
-    
-   
-  //   //modbusReadGet(IPAddress, COMPort, SlaveID, 1816, 5,firstBatteryId, "Battery ATSVSC-"+SlaveID,StringId,"ATSVSC")
-  //   firstBatteryId += NoOfBattery;
-  // }
-  console.log("Hello World");     
+     firstBatteryId += NoOfBattery;
+  }
+  //console.log("Hello World");     
 })()
 
 
 async function getDB() {
   try {
-    var requestOptions = {
-      method: 'GET',
-      redirect: 'follow'
-    };
     var resultDB = await fetch("http://localhost:1212/getUPSStringData", { method: 'GET', redirect: 'follow' });
-    var tempJSON = JSON.parse(resultDB);
+    var tempJSON = await resultDB.json();
     var upsStringInfo = tempJSON.recordset;
-    console.log(upsStringInfo);
+    //console.log(upsStringInfo)
 
     return upsStringInfo;
 
