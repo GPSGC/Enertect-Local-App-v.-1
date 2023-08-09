@@ -1,7 +1,13 @@
 const modbus = require('jsmodbus')
 const net = require('net');
 const moduleSql= require('./NodeModbusSQL.js');
-async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger,firstBatteryId, displayName) {
+var EventLogger = require('node-windows').EventLogger;
+ var log = new EventLogger('NodeModbusApp');       
+ 
+   // log.warn('Watch out!');
+   // log.error('Something went wrong.')
+   
+async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger,firstBatteryId, displayName,Type) {
 
     const socket = new net.Socket()
     const client = new modbus.client.TCP(socket, bankDeviceId, 15000);
@@ -12,7 +18,19 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
             .then(function (resp) {
                 console.log(displayName);
                 console.log(resp.response._body.valuesAsArray);
-                insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
+
+                if (Type =="Volt")
+                {
+                  insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
+                }
+                else if(Type =="IR")
+                {
+                  insertDashboardIR(resp.response._body.valuesAsArray,firstBatteryId)
+                }  
+                else if(Type =="Temp")
+                {
+                  insertDashboardTemp(resp.response._body.valuesAsArray,firstBatteryId)
+                }                
                 socket.end()
 
             }).catch(function (err) {
@@ -61,7 +79,7 @@ function insertDashboardVoltage(value,firstBatteryId)
               myHeaders.append("Content-Type", "application/json");
 
               var raw = JSON.stringify({
-                  "No": batteryIdinsert,
+                  "BatteryId": batteryIdinsert,
                 "Value":Value/1000 // parseInt(value[i])/1000
               });
 
@@ -111,13 +129,193 @@ function insertDashboardVoltage(value,firstBatteryId)
         
   }
 }
+function insertDashboardIR(value,firstBatteryId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+        //console.log("1 row inserted")
+      //  console.log("batteryid" + j);
+      let batteryIdinsert=j;
+      let Value=value[i];
+       
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "BatteryId": batteryIdinsert       
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1212/checkDashboardIRByBatteryID", requestOptions)
+          .then(response => response.text())
+          .then(result =>{
+           // console.log(result)
+            var tempJSON = JSON.parse(result);
+            //console.log(tempJSON.recordset) ;          
+            var count=tempJSON.recordset[0].Count;        
+                     
+            if (count == 0)
+            {
+               console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+                //console.log("checkquery :" + batteryIdinsert);
+                //*********************************Add in DB*****************************************
+              var myHeaders = new Headers();
+              myHeaders.append("Content-Type", "application/json");
+
+              var raw = JSON.stringify({
+                  "BatteryId": batteryIdinsert,
+                "Value":Value/1000 // parseInt(value[i])/1000
+              });
+
+              var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+              };
+
+              fetch("http://localhost:1212/insertInDashboardIR", requestOptions)
+                .then(response => response.text())
+                .then(result => console.log(result))
+                .catch(error => console.log('error', error));
+          
+            }
+            else
+            {
+              console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+              //*********************************Update in DB*****************************************
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                
+              "Value":Value/1000 ,// parseInt(value[i])/1000
+              "BatteryId": batteryIdinsert
+            });
+
+            var requestOptions = {
+              method: 'PUT',
+              headers: myHeaders,
+              body: raw,
+              redirect: 'follow'
+            };
+
+            fetch("http://localhost:1212/updateDashboardIRByBatteryID", requestOptions)
+              .then(response => response.text())
+              .then(result => console.log(result))
+              .catch(error => console.log('error', error));
+        
+          }
+      
+          })
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+        
+  }
+}
+function insertDashboardTemp(value,firstBatteryId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+        //console.log("1 row inserted")
+      //  console.log("batteryid" + j);
+      let batteryIdinsert=j;
+      let Value=value[i];
+       
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "BatteryId": batteryIdinsert       
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1212/checkDashboardTempByBatteryID", requestOptions)
+          .then(response => response.text())
+          .then(result =>{
+           // console.log(result)
+            var tempJSON = JSON.parse(result);
+            //console.log(tempJSON.recordset) ;          
+            var count=tempJSON.recordset[0].Count;        
+                     
+            if (count == 0)
+            {
+               console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+                //console.log("checkquery :" + batteryIdinsert);
+                //*********************************Add in DB*****************************************
+              var myHeaders = new Headers();
+              myHeaders.append("Content-Type", "application/json");
+
+              var raw = JSON.stringify({
+                  "BatteryId": batteryIdinsert,
+                "Value":Value/1000 // parseInt(value[i])/1000
+              });
+
+              var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+              };
+
+              fetch("http://localhost:1212/insertInDashboardTemp", requestOptions)
+                .then(response => response.text())
+                .then(result => console.log(result))
+                .catch(error => console.log('error', error));
+          
+            }
+            else
+            {
+              console.log("count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+              //*********************************Update in DB*****************************************
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                
+              "Value":Value/10 ,// parseInt(value[i])/1000
+              "BatteryId": batteryIdinsert
+            });
+
+            var requestOptions = {
+              method: 'PUT',
+              headers: myHeaders,
+              body: raw,
+              redirect: 'follow'
+            };
+
+            fetch("http://localhost:1212/updateDashboardTempByBatteryID", requestOptions)
+              .then(response => response.text())
+              .then(result => console.log(result))
+              .catch(error => console.log('error', error));
+        
+          }
+      
+          })
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+        
+  }
+}
 function delay(time) {
     return new Promise(resolve => setTimeout(resolve, time));
 }
 
 //Main
 (async () => {
- 
+  log.info('NodeModbusApp Started');
    //function execute(){
    //*****************Get UPS*************************/
    var requestOptions = {
@@ -143,12 +341,14 @@ fetch("http://localhost:1212/getUPSStringData", requestOptions)
             var UPSID= upsStringInfo[i].UPSID;
              console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
               
-             modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID)
+             modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID,"Volt")
+             modbusReadGet(IPAddress, COMPort, SlaveID, 306, NoOfBattery,firstBatteryId, "Battery IR-"+SlaveID,"IR")
+             modbusReadGet(IPAddress, COMPort, SlaveID, 909, NoOfBattery,firstBatteryId, "Battery Temp-"+SlaveID,"Temp")
              
              
              firstBatteryId +=NoOfBattery;
         }
-
+      
     })
     .catch(error => console.log('error', error));
    // await delay(10000); //10 sec 
