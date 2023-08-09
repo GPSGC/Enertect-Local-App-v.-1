@@ -91,7 +91,7 @@ app.put('/updateDashboardVoltageByBatteryID',jsonParser,function(req,res){
         if (err) throw err;
         //console.log("Connected!");
         //Insert a record in the "customers" table:
-        var sqlquery=` UPDATE NodeDashboardVoltage set DashboardVoltage = '${req.body.Value}'WHERE BatteryId  = '${req.body.BatteryId}'`;
+        var sqlquery=` UPDATE NodeDashboardVoltage set DashboardVoltage = '${req.body.Value}' WHERE BatteryId  = '${req.body.BatteryId}'`;
         var request = new sql.Request();        
         request.query(sqlquery, function (err, result) {
             if (!err)
