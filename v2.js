@@ -22,12 +22,10 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
     })
 }
 function insertDashboardVoltage(value,firstBatteryId)
-
 {
- 
-    for (i=0, j=firstBatteryId; i<value.length; i++, j++)
+   for (i=0, j=firstBatteryId; i<value.length; i++, j++)
      {
-          // var value=value[i];
+           var value=value[i];
            let batteryIdinsert=j;         
         //*********************************Add in DB*****************************************
         var myHeaders = new Headers();
