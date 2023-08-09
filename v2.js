@@ -23,49 +23,48 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
 }
 function insertDashboardVoltage(value,firstBatteryId)
 {
-   for (i=0, j=firstBatteryId; i<value.length; i++, j++)
-     {
-           var value=value[i];
-           let batteryIdinsert=j;         
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+        //console.log("1 row inserted")
+      //  console.log("batteryid" + j);
+      let batteryIdinsert=j;
+         
         //*********************************Add in DB*****************************************
         var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
+
         var raw = JSON.stringify({
             "BatteryId": batteryIdinsert       
         });
 
-        var requestOptions = { method: 'POST', headers: myHeaders, body: raw,  redirect: 'follow' };
-        
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
         fetch("http://localhost:1212/checkDashboardVoltageByBatteryID", requestOptions)
           .then(response => response.text())
           .then(result =>{
+           // console.log(result)
             var tempJSON = JSON.parse(result);
-               var count=tempJSON.recordset[0].Count;
-                   
+            console.log(tempJSON.recordset) ;          
+            var count=tempJSON.recordset[0].Count;
+            console.log("count" + count + "batteryidinsert" + batteryIdinsert)
+           
+           
             if (count == 0)
             {
-                console.log("checkquery-" + batteryIdinsert);
+                console.log("checkquery" + batteryIdinsert);
+                
 
-                //*********************************Insert Voltage in DB*****************************************
-            var myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
-
-            var raw = JSON.stringify({
-            "No": batteryIdinsert,
-            "Value": parseInt(value)/1000 //parseInt(value[i])/1000
-            });
-
-             var requestOptions = { method: 'POST', headers: myHeaders, body: raw,  redirect: 'follow' };
-
-             fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
-             .then(response => response.text())
-            .then(result => console.log(result))
-            .catch(error => console.log('error', error));}
-             })
+            }
+      
+          })
           .catch(error => console.log('error', error));
-       
-             }
-  
+        //********************************************************************************************
+        
+  }
 }
 function delay(time) {
     return new Promise(resolve => setTimeout(resolve, time));
@@ -84,9 +83,10 @@ function delay(time) {
 fetch("http://localhost:1212/getUPSStringData", requestOptions)
     .then(response => response.text())
     .then(result => {
-       
+        //console.log(result))
         var tempJSON = JSON.parse(result);
         var upsStringInfo = tempJSON.recordset;
+      //  console.log(upsStringInfo);
         var firstBatteryId=1;
 
         for (var i = 0; i < upsStringInfo.length; i++) {
@@ -99,6 +99,8 @@ fetch("http://localhost:1212/getUPSStringData", requestOptions)
              console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
               
              modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID)
+             
+             
              firstBatteryId +=NoOfBattery;
         }
 
