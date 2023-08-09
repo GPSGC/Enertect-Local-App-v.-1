@@ -6,8 +6,8 @@ var EventLogger = require('node-windows').EventLogger;
  
    // log.warn('Watch out!');
    // log.error('Something went wrong.')
-   
-async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger,firstBatteryId, displayName,Type) {
+   var strVoltage,dashboardAt,strCurrent;
+async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger,firstBatteryId, displayName,StringId,Type) {
 
     const socket = new net.Socket()
     const client = new modbus.client.TCP(socket, bankDeviceId, 15000);
@@ -18,19 +18,26 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
             .then(function (resp) {
                 console.log(displayName);
                 console.log(resp.response._body.valuesAsArray);
-
-                if (Type =="Volt")
+                log.info('Dashboard Recording Started..');
+                if (Type == "Volt")
                 {
                   insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
                 }
-                else if(Type =="IR")
+                else if(Type == "IR")
                 {
                   insertDashboardIR(resp.response._body.valuesAsArray,firstBatteryId)
                 }  
-                else if(Type =="Temp")
+                else if(Type == "Temp")
                 {
                   insertDashboardTemp(resp.response._body.valuesAsArray,firstBatteryId)
-                }                
+                }  
+                else if(Type == "ATSVSC")
+                {
+                  strVoltage=resp.response._body.valuesAsArray[0]/10 ;
+                  dashboardAt=resp.response._body.valuesAsArray[4]/10 ;
+                  strCurrent=conversionForCurrent(resp.response._body.valuesAsArray[1]) /10;
+                  
+                }              
                 socket.end()
 
             }).catch(function (err) {
@@ -316,46 +323,52 @@ function delay(time) {
 //Main
 (async () => {
   log.info('NodeModbusApp Started');
-   //function execute(){
-   //*****************Get UPS*************************/
-   var requestOptions = {
-    method: 'GET',
-    redirect: 'follow'
-};
+   
+   //*****************Loop UPS*************************/
+   var upsStringInfo = await getDB();
+   console.log(upsStringInfo);
+    var firstBatteryId = 9;
+ 
+  // for (var i = 0; i < upsStringInfo.length; i++) {
+  //   var IPAddress = upsStringInfo[i].IPAddress;
+  //   var COMPort = upsStringInfo[i].COMPort;
+  //   var SlaveID = upsStringInfo[i].SlaveID;
+  //   var NoOfBattery = upsStringInfo[i].NoOfBattery;
+  //   var StringId = upsStringInfo[i].BatteryStringID;
+  //   var UPSID = upsStringInfo[i].UPSID;
+  //   console.log(IPAddress + "-" + COMPort + "-" + SlaveID);
 
-fetch("http://localhost:1212/getUPSStringData", requestOptions)
-    .then(response => response.text())
-    .then(result => {
-        //console.log(result))
-        var tempJSON = JSON.parse(result);
-        var upsStringInfo = tempJSON.recordset;
-      //  console.log(upsStringInfo);
-        var firstBatteryId=9;
-
-        for (var i = 0; i < upsStringInfo.length; i++) {
-            var IPAddress = upsStringInfo[i].IPAddress;
-            var COMPort = upsStringInfo[i].COMPort;
-            var SlaveID = upsStringInfo[i].SlaveID;
-            var NoOfBattery = upsStringInfo[i].NoOfBattery;
-            var StringId = upsStringInfo[i].BatteryStringID;
-            var UPSID= upsStringInfo[i].UPSID;
-             console.log(IPAddress + "-"+ COMPort + "-" + SlaveID);
-              
-             modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID,"Volt")
-             modbusReadGet(IPAddress, COMPort, SlaveID, 306, NoOfBattery,firstBatteryId, "Battery IR-"+SlaveID,"IR")
-             modbusReadGet(IPAddress, COMPort, SlaveID, 909, NoOfBattery,firstBatteryId, "Battery Temp-"+SlaveID,"Temp")
-             
-             
-             firstBatteryId +=NoOfBattery;
-        }
-      
-    })
-    .catch(error => console.log('error', error));
-   // await delay(10000); //10 sec 
+  //   modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID,StringId,"Volt")
+  //   console.log("1 hello");
+  //   modbusReadGet(IPAddress, COMPort, SlaveID, 306, NoOfBattery,firstBatteryId, "Battery IR-"+SlaveID,StringId,"IR")
+  //   console.log("2 hello");
+  //   modbusReadGet(IPAddress, COMPort, SlaveID, 909, NoOfBattery,firstBatteryId, "Battery Temp-"+SlaveID,StringId,"Temp")
+  //   console.log("3 hello");
     
-//   }
-//   setInterval(execute, 2000);
+    
+   
+  //   //modbusReadGet(IPAddress, COMPort, SlaveID, 1816, 5,firstBatteryId, "Battery ATSVSC-"+SlaveID,StringId,"ATSVSC")
+  //   firstBatteryId += NoOfBattery;
+  // }
+  console.log("Hello World");     
 })()
 
 
-//////////////////////////////////////////////////////////////////////////////////////
+async function getDB() {
+  try {
+    var requestOptions = {
+      method: 'GET',
+      redirect: 'follow'
+    };
+    var resultDB = await fetch("http://localhost:1212/getUPSStringData", { method: 'GET', redirect: 'follow' });
+    var tempJSON = JSON.parse(resultDB);
+    var upsStringInfo = tempJSON.recordset;
+    console.log(upsStringInfo);
+
+    return upsStringInfo;
+
+  } catch (err) {
+    console.log(err);
+  } 
+
+}
