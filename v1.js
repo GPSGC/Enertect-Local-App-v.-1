@@ -14,6 +14,7 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
                 console.log(resp.response._body.valuesAsArray);
                 socket.end()
 
+                
             }).catch(function (err) {
                 console.log(err);
                 socket.end()
@@ -24,8 +25,8 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
 (async () => {
 
     
-        modbusReadGet('192.168.0.105', '4002', 17, 3, 35, "Battery Voltage -17")
-        modbusReadGet('192.168.0.105', '4002', 18, 3, 35, "Battery Voltage -18")  
+      //  modbusReadGet('192.168.0.105', '4002', 17, 3, 35, "Battery Voltage -17")
+       // modbusReadGet('192.168.0.105', '4002', 18, 3, 35, "Battery Voltage -18")  
         // modbusReadGet('192.168.0.101', '502', 19, 3, 35, "Battery Voltage -19")  
         // modbusReadGet('192.168.0.101', '502', 20, 3, 35, "Battery Voltage -20")      
         
