@@ -227,9 +227,8 @@ function insertStrCurrent(BatteryConfigID,value)
 }
 function insertVoltage(value,firstBatteryId)
 {
-    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
-        //console.log("1 row inserted")
-
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++)
+     {
         //*********************************Add in DB*****************************************
         var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
