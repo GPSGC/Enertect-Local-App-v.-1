@@ -48,16 +48,18 @@ function insertDashboardVoltage(value,firstBatteryId)
            // console.log(result)
             var tempJSON = JSON.parse(result);           
             var count=tempJSON.recordset[0].Count;
-           
+            console.log("count"+tempJSON.recordset[0].Count);
             if (count == 0)
             {
+               
                 console.log(j);
+              
             }
       
           })
           .catch(error => console.log('error', error));
         //********************************************************************************************
-        
+         
   }
 }
 function delay(time) {
