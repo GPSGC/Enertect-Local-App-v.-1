@@ -55,8 +55,29 @@ function insertDashboardVoltage(value,firstBatteryId)
            
             if (count == 0)
             {
-                console.log("checkquery" + batteryIdinsert);
-                
+                console.log("checkquery :" + batteryIdinsert);
+                //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "No": batteryIdinsert,
+          "Value":13.5 // parseInt(value[i])/1000
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1234/insertInDashboardVoltage", requestOptions)
+          .then(response => response.text())
+          .then(result => console.log(result))
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+
 
             }
       
@@ -87,7 +108,7 @@ fetch("http://localhost:1212/getUPSStringData", requestOptions)
         var tempJSON = JSON.parse(result);
         var upsStringInfo = tempJSON.recordset;
       //  console.log(upsStringInfo);
-        var firstBatteryId=1;
+        var firstBatteryId=9;
 
         for (var i = 0; i < upsStringInfo.length; i++) {
             var IPAddress = upsStringInfo[i].IPAddress;
