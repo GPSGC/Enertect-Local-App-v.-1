@@ -21,21 +21,16 @@ var NextRoundSleep=1000;
 //@ups
 async function createUPSThread(upsJSON) {
 
-    // for (ups of upsJSON) {
-    //     for (bank of ups.value.UPSBanks) {
+    
         var firstBatteryId = 1;
-    for (var i = 0; i < upsJSON.length; i++)
-     {
-        var IPAddress = upsStringInfo[i].IPAddress;
-        var COMPort = upsStringInfo[i].COMPort;
-        var SlaveID = upsStringInfo[i].SlaveID;
-        var NoOfBattery = upsStringInfo[i].NoOfBattery;
-        var StringId = upsStringInfo[i].BatteryStringID;
-        var UPSID = upsStringInfo[i].UPSID;
+    // for (var i = 0; i < upsJSON.length; i++)
+    //  {
+        for( var ups of upsJSON)
+        {
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + SlaveID)
             await delayByMS(PoolingSleep);
             console.log("Time to read - Voltage")
-            await readModbus( IPAddress,  COMPort,SlaveID, 3, NoOfBattery, "",firstBatteryId)
+            await readModbus(ups.IPAddress,  ups.COMPort,ups.SlaveID, 3, ups.NoOfBattery, "",firstBatteryId)
 
             // console.log("I am sleeping for " + ups.value.PoolingSleep + "Bank Name is " + bank.DisplayName)
             // await delayByMS(ups.value.PoolingSleep);
