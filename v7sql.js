@@ -96,8 +96,7 @@ async function delayByMS(time) {
 async function voltageSaveDBSQL(value,firstBatteryId)
 {
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
-        //console.log("1 row inserted")
-      //  console.log("batteryid" + j);
+     
       let batteryIdinsert=j;
       let Value=value[i];
     
@@ -116,50 +115,26 @@ async function voltageSaveDBSQL(value,firstBatteryId)
                console.log("Insert--"+"count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
                var myHeaders = new Headers();
                myHeaders.append("Content-Type", "application/json");
-               var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000 });
+                var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000 });
+                var requestOptions = { method: 'POST',headers: myHeaders, body: raw, redirect: 'follow'};
 
-              var requestOptions = { method: 'POST',headers: myHeaders,
-                body: raw,
-                redirect: 'follow'
-              };
-
-              fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
-                .then(response => response.text())
+              fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions).then(response => response.text())
                 .then(result => console.log(result))
                 .catch(error => console.log('error', error));
-          
-            }
+           }
             else
             {
-              console.log("Update--"+"count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
-              //*********************************Update in DB*****************************************
-            var myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
+            
+             var myHeaders = new Headers();
+             myHeaders.append("Content-Type", "application/json");
+             var raw = JSON.stringify({ "Value":Value/1000 ,"BatteryId": batteryIdinsert });
+             var requestOptions = { method: 'PUT', headers: myHeaders, body: raw, redirect: 'follow' };
 
-            var raw = JSON.stringify({
-                
-              "Value":Value/1000 ,// parseInt(value[i])/1000
-              "BatteryId": batteryIdinsert
-            });
-
-            var requestOptions = {
-              method: 'PUT',
-              headers: myHeaders,
-              body: raw,
-              redirect: 'follow'
-            };
-
-            fetch("http://localhost:1212/updateDashboardVoltageByBatteryID", requestOptions)
-              .then(response => response.text())
+            fetch("http://localhost:1212/updateDashboardVoltageByBatteryID", requestOptions).then(response => response.text())
               .then(result => console.log(result))
-              .catch(error => console.log('error', error));
-        
-          }
-      
-          })
-          .catch(error => console.log('error', error));
-        //********************************************************************************************
-        
+              .catch(error => console.log('error', error)); }
+       }) .catch(error => console.log('error', error));
+       
   }
 }
 async function getDB() {
