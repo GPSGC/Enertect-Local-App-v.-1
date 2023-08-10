@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    // user: "nodeIndus2020",
-    // password: "nodeIndus2020",
-    // database: "NodeModbus",
-    // server: '114.79.133.104',
-    user: "NodeModbus",
-    password: "nodemodbus",
+    user: "nodeIndus2020",
+    password: "nodeIndus2020",
     database: "NodeModbus",
-    server: 'localhost',
+    server: '114.79.133.104',
+    // user: "NodeModbus",
+    // password: "nodemodbus",
+    // database: "NodeModbus",
+    // server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -203,3 +203,147 @@ app.put('/updateDashboardTempByBatteryID',jsonParser,function(req,res){
     });
     
   });
+  app.post('/checkStringVoltageByBatteryStringID', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT COUNT(*) as Count from NodeStringVoltage where BatteryStringID='${req.body.BatteryStringID}'`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInStringVoltage', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeStringVoltage (BatteryStringID,StringVoltage) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.put('/updateInStringVoltage', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `Update NodeStringVoltage set StringVoltage='${req.body.Value}' where BatteryStringID= '${req.body.BatteryStringID}'`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/checkDashboardAtByBatteryStringID', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT COUNT(*) as Count from NodeDashBoardAT where BatteryStringID='${req.body.BatteryStringID}'`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInDAshboardAT', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDashBoardAT (BatteryStringID,AT1) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/updateInDashboardAT', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `Update NodeDashBoardAT SET AT1='${req.body.Value}' where  BatteryStringID='${req.body.BatteryStringID}'`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/checkStrCurrentByBatteryStringID', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT COUNT(*) as Count from NodeStringCurrent where BatteryStringID='${req.body.BatteryStringID}'`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInStringCurrent', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeStringCurrent (BatteryStringID,StringCurrent) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/updateInStringCurrent', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `UPDATE NodeStringCurrent SET StringCurrent='${req.body.Value}' WHERE  BatteryStringID='${req.body.BatteryStringID}'`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
