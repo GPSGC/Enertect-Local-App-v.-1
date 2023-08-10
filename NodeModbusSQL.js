@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    user: "nodeIndus2020",
-    password: "nodeIndus2020",
-    database: "NodeModbus",
-    server: '114.79.133.104',
-    // user: "NodeModbus",
-    // password: "nodemodbus",
+    // user: "nodeIndus2020",
+    // password: "nodeIndus2020",
     // database: "NodeModbus",
-    // server: 'localhost',
+    // server: '114.79.133.104',
+    user: "NodeModbus",
+    password: "nodemodbus",
+    database: "NodeModbus",
+    server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -283,7 +283,7 @@ app.post('/insertInDAshboardAT', jsonParser, function (req, res) {
     });
 
 });
-app.post('/updateInDashboardAT', jsonParser, function (req, res) {
+app.put('/updateInDashboardAT', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
@@ -331,7 +331,7 @@ app.post('/insertInStringCurrent', jsonParser, function (req, res) {
     });
 
 });
-app.post('/updateInStringCurrent', jsonParser, function (req, res) {
+app.put('/updateInStringCurrent', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
