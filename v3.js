@@ -325,9 +325,9 @@ function delay(time) {
   log.info('NodeModbusApp Started');
  
    
-   //*****************Loop UPS*************************/
+   //*********************************Loop UPS*****************************************/
    var upsStringInfo = await getDB();
-  //console.log(upsStringInfo);
+   //console.log(upsStringInfo);
     var firstBatteryId = 9;
  
   for (var i = 0; i < upsStringInfo.length; i++) {
