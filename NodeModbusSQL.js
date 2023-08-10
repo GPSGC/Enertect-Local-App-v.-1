@@ -45,7 +45,7 @@ app.get('/getUPSStringData', function (req, res) {
 
         // query to the database and get the records
         request.query(`SELECT BatteryStringInfo.BatteryStringID, BatteryStringInfo.UPSID, BatteryStringInfo.NoOfBattery, BatteryStringInfo.ControlModuleStringID, BatteryStringInfo.StringName, UPSInfo.UPSName, UPSInfo.IPAddress, UPSInfo.COMPort, 
-        BatteryStringInfo.UPSID * 16 + BatteryStringInfo.ControlModuleStringID AS SlaveID
+        UPSInfo.ControlModuleID * 16 + BatteryStringInfo.ControlModuleStringID AS SlaveID
  FROM            BatteryStringInfo INNER JOIN
         UPSInfo ON BatteryStringInfo.UPSID = UPSInfo.UPSID`, function (err, recordset) {
 
