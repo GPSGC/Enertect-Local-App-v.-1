@@ -9,11 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-
-    user: "NodeModbus",
-    password: "nodemodbus",
-    database: "NodeModbus",
-    server: 'localhost',
+    user: "nodeIndus2020",
+    password: "nodeIndus2020",
+    database: "CommunicatorDB",
+    server: '114.79.133.104',
+    // user: "NodeModbus",
+    // password: "nodemodbus",
+    // database: "NodeModbus",
+    // server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
