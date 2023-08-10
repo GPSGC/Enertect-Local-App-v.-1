@@ -11,7 +11,7 @@ app.use(express.static("public"));
 var config = {
     user: "nodeIndus2020",
     password: "nodeIndus2020",
-    database: "CommunicatorDB",
+    database: "NodeModbus",
     server: '114.79.133.104',
     // user: "NodeModbus",
     // password: "nodemodbus",
