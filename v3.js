@@ -3,8 +3,7 @@ const net = require('net');
 const moduleSql= require('./NodeModbusSQL.js');
 var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('NodeModbusApp');       
- 
-   // log.warn('Watch out!');
+    // log.warn('Watch out!');
    // log.error('Something went wrong.')
    var strVoltage,dashboardAt,strCurrent;
 async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger,firstBatteryId, displayName,StringId,Type) {
@@ -327,8 +326,8 @@ function delay(time) {
    
    //*********************************Loop UPS*****************************************/
    var upsStringInfo = await getDB();
-   //console.log(upsStringInfo);
-    var firstBatteryId = 9;
+   console.log(upsStringInfo);
+    var firstBatteryId = 1;
  
   for (var i = 0; i < upsStringInfo.length; i++) {
     var IPAddress = upsStringInfo[i].IPAddress;
