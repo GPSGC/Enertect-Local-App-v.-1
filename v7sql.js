@@ -2,17 +2,15 @@ const { resolvePtr } = require('dns');
 const modbus = require('jsmodbus')
 const net = require('net')
 const moduleSql= require('./NodeModbusSQL.js');
-
 var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('NodeModbusApp');       
 //@main
 (async () => {
     //await modbusLocal.replicate.from(modbusRemote);
     var dbR = await getDB(); // await modbusLocal.query("typeGet", { key: "UPS" });
-   //console.log(dbR)
+   console.log(dbR)
     for (var ups of dbR) {
          createUPSThread(ups.UPSID);
-         
       }
 })()
 
@@ -22,35 +20,37 @@ var NextRoundSleep=1000;
 async function createUPSThread(upsid) {
 
   var dbS = await getStringDB(upsid);
-  // console.log(dbS)
-    createStringThread(dbS);
-    
+  console.log(dbS)
+  //createStringThread(dbS.Rows) 
 }
 async function createStringThread(stringJSON) {
-  var firstBatteryId = 1;
-     // for (var i = 0; i < stringJSON.length; i++)
-    //  {
-      for (var string of stringJSON)  
-        {
-            //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            //await delayByMS(PoolingSleep);
-            console.log("Time to read - Voltage"+ "-UPS Name is: " + string.UPSID +" Bank Name is: " + string.StringName +"-"+ string.SlaveID)
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
-            // console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            // await delayByMS(PoolingSleep);
-            // console.log("Time to read - IR" + "-UPS Name is: " + string.UPSID + " Bank Name is: " + string.StringName +"-"+  string.SlaveID)
-            // await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
-            // console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            // await delayByMS(PoolingSleep);
-            // console.log("Time to read - Temp" + "-UPS Name is: " + string.UPSID + " Bank Name is: " + string.StringName +"-"+  string.SlaveID)
-            // await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
-            // console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            // await delayByMS(PoolingSleep);
-            // console.log("Time to read - SC/SV/AT" + "-UPS Name is: " + string.UPSID + " Bank Name is: " + string.StringName +"-"+  string.SlaveID)
-            // await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
 
-            // console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
-            // await delayByMS(NextRoundSleep);
+  var firstBatteryId = 1;
+    // for (var i = 0; i < stringJSON.length; i++)
+    //  {
+        for( var string of stringJSON)
+        {
+            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            await delayByMS(PoolingSleep);
+            console.log("Time to read - Voltage")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
+            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+            await delayByMS(PoolingSleep);
+            console.log("Time to read - Temperature")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
+            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+            await delayByMS(PoolingSleep);
+            console.log("Time to read - Temperature")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
+
+            
+            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            await delayByMS(PoolingSleep);
+            console.log("Time to read - Temperature")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
+
+            console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
+            await delayByMS(NextRoundSleep);
             
             firstBatteryId += string.NoOfBattery;
         
@@ -74,7 +74,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                // voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
                if (Type == "Volt")
                {
-                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID);
+                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId);
                }
                else if(Type == "IR")
                 {
@@ -121,90 +121,47 @@ async function delayByMS(time) {
 //         modbusRemote.post(finalJSON2Upload);
 //     } catch (err) { console.log(err); }
 // }
-async function voltageSaveDBSQL(value,firstBatteryId,StringID)
+async function voltageSaveDBSQL(value,firstBatteryId)
 {
-  //*********************************Add in DB array*****************************************
-  var myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-
-  var raw = JSON.stringify({
-      "BatteryStringID": StringID,
-    "Value": value
-  });
-
-  var requestOptions = {
-    method: 'POST',
-    headers: myHeaders,
-    body: raw,
-    redirect: 'follow'
-  };
-
-  fetch("http://localhost:1212/insertarray", requestOptions)
-    .then(response => response.text())
-    .then(result => console.log(result))
-    .catch(error => console.log('error', error));
-    
-  //********************************************************************************************
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
      
-       //*********************************Add in DB*****************************************
-       var myHeaders = new Headers();
-       myHeaders.append("Content-Type", "application/json");
-
-       var raw = JSON.stringify({
-           "BatteryId": j,
-         "Value": parseInt(value[i])/1000
-       });
-
-       var requestOptions = {
-         method: 'POST',
-         headers: myHeaders,
-         body: raw,
-         redirect: 'follow'
-       };
-
-       fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
-         .then(response => response.text())
-         .then(result => console.log(result))
-         .catch(error => console.log('error', error));
-       //********************************************************************************************
-      // let batteryIdinsert=j;
-      // let Value=value[i];
+      let batteryIdinsert=j;
+      let Value=value[i];
     
-      //   var myHeaders = new Headers();
-      //   myHeaders.append("Content-Type", "application/json");
-      //   var raw = JSON.stringify({ "BatteryId": batteryIdinsert });
-      //   var requestOptions = { method: 'POST', headers: myHeaders, body: raw, redirect: 'follow' };
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        var raw = JSON.stringify({ "BatteryId": batteryIdinsert });
+        var requestOptions = { method: 'POST', headers: myHeaders, body: raw, redirect: 'follow' };
 
-      //   fetch("http://localhost:1212/checkDashboardVoltageByBatteryID", requestOptions).then(response => response.text())
-      //     .then(result =>{
-      //       var tempJSON = JSON.parse(result);
-      //        var count=tempJSON.recordset[0].Count;        
+        fetch("http://localhost:1212/checkDashboardVoltageByBatteryID", requestOptions).then(response => response.text())
+          .then(result =>{
+            var tempJSON = JSON.parse(result);
+             var count=tempJSON.recordset[0].Count;        
                      
-      //       if (count == 0)
-      //       {
-      //          console.log("Insert--"+"count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
-      //          var myHeaders = new Headers();
-      //          myHeaders.append("Content-Type", "application/json");
-      //           var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000 });
-      //           var requestOptions = { method: 'POST',headers: myHeaders, body: raw, redirect: 'follow'};
+            if (count == 0)
+            {
+               console.log("Insert--"+"count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
+               var myHeaders = new Headers();
+               myHeaders.append("Content-Type", "application/json");
+                var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000 });
+                var requestOptions = { method: 'POST',headers: myHeaders, body: raw, redirect: 'follow'};
 
-      //         fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions).then(response => response.text())
-      //           .then(result => console.log(result))
-      //           .catch(error => console.log('error', error));
-      //      }
-      //       else
-      //       {
+              fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions).then(response => response.text())
+                .then(result => console.log(result))
+                .catch(error => console.log('error', error));
+           }
+            else
+            {
             
-      //        var myHeaders = new Headers();
-      //        myHeaders.append("Content-Type", "application/json");
-      //        var raw = JSON.stringify({ "Value":Value/1000 ,"BatteryId": batteryIdinsert });
-      //        var requestOptions = { method: 'PUT', headers: myHeaders, body: raw, redirect: 'follow' };
+             var myHeaders = new Headers();
+             myHeaders.append("Content-Type", "application/json");
+             var raw = JSON.stringify({ "Value":Value/1000 ,"BatteryId": batteryIdinsert });
+             var requestOptions = { method: 'PUT', headers: myHeaders, body: raw, redirect: 'follow' };
 
-      //       fetch("http://localhost:1212/updateDashboardVoltageByBatteryID", requestOptions).then(response => response.text())
-      //         .then(result => console.log(result))
-      //         .catch(error => console.log('error', error)); }
-      //  }) .catch(error => console.log('error', error));
+            fetch("http://localhost:1212/updateDashboardVoltageByBatteryID", requestOptions).then(response => response.text())
+              .then(result => console.log(result))
+              .catch(error => console.log('error', error)); }
+       }) .catch(error => console.log('error', error));
        
   }
 }
@@ -532,10 +489,10 @@ async function getStringDB(upsid)
     var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
     var resultDB = await fetch("http://localhost:1212/getUPSStringData", requestOptions);
 
-    //console.log(resultDB);
+    console.log(resultDB);
     var tempJSON = await resultDB.json();
     var StringInfo = tempJSON.recordset;
-   //console.log(StringInfo)
+    console.log(StringInfo)
 
     return StringInfo;
 
@@ -561,7 +518,7 @@ function conversionForCurrent(value)
     }
     CurrenDecimal=BinaryToDecimal(newbinary);
     CurrenDecimal = CurrenDecimal * negPos;
-    //console.log(CurrenDecimal);
+    console.log(CurrenDecimal);
     return CurrenDecimal;
 }
 function BinaryToDecimal(binary) {
