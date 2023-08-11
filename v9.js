@@ -117,6 +117,7 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringID)
          redirect: 'follow'
        };
 
+       console.log("BatteryId" + j + "StringID" + StringID)
        fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
          .then(response => response.text())
          .then(result => console.log(result))
