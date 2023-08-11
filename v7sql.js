@@ -21,8 +21,9 @@ var NextRoundSleep=1000;
 async function createUPSThread(upsid) {
 
   var dbS = await getStringDB(upsid);
-   console.log(dbS)
+  // console.log(dbS)
     createStringThread(dbS);
+    await delayByMS(PoolingSleep);
 }
 async function createStringThread(stringJSON) {
   var firstBatteryId = 1;
@@ -31,21 +32,21 @@ async function createStringThread(stringJSON) {
       for (var string of stringJSON)  
         {
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
+            //await delayByMS(PoolingSleep);
             console.log("Time to read - Voltage")
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
-            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
+            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+           // await delayByMS(PoolingSleep);
+            console.log("Time to read - IR")
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
-            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
+            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            //await delayByMS(PoolingSleep);
+            console.log("Time to read - Temp")
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
 
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
+            //await delayByMS(PoolingSleep);
+            console.log("Time to read - SC/SV/AT")
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
 
             console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
