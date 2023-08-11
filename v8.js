@@ -7,8 +7,8 @@ var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('NodeModbusApp');       
 //@main
 (async () => {
-    //await modbusLocal.replicate.from(modbusRemote);
-    var dbR = await getDB(); // await modbusLocal.query("typeGet", { key: "UPS" });
+   
+    var dbR = await getDB(); 
    //console.log(dbR)
     for (var ups of dbR) {
          createUPSThread(ups.UPSID);
@@ -22,7 +22,7 @@ var NextRoundSleep=1000;
 async function createUPSThread(upsid) {
 
   var dbS = await getStringDB(upsid);
-  // console.log(dbS)
+ 
     createStringThread(dbS);
     
 }
