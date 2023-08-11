@@ -35,7 +35,7 @@ async function createStringThread(stringJSON) {
             //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             //await delayByMS(PoolingSleep);
             console.log("Time to read - Voltage"+ "-UPS Name is: " + string.UPSID +" Bank Name is: " + string.StringName +"-"+ string.SlaveID)
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
+              readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
             // console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             // await delayByMS(PoolingSleep);
             // console.log("Time to read - IR" + "-UPS Name is: " + string.UPSID + " Bank Name is: " + string.StringName +"-"+  string.SlaveID)
