@@ -10,10 +10,10 @@ var EventLogger = require('node-windows').EventLogger;
    
     var dbR = await getDB(); 
   
-    for (var ups of dbR) {
-         createUPSThread(ups.UPSID);
+   // for (var ups of dbR) {
+         createUPSThread(8);
         
-      }
+     // }
 })()
 
 var PoolingSleep = 1000;
