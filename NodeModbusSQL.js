@@ -12,7 +12,7 @@ var config = {
     // user: "nodeIndus2020",
     // password: "nodeIndus2020",
     // database: "NodeModbus",
-    server: '114.79.133.104',
+    // server: '114.79.133.104',
     user: "NodeModbus",
     password: "nodemodbus",
     database: "NodeModbus",
