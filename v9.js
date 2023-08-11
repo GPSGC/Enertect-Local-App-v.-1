@@ -12,8 +12,7 @@ var EventLogger = require('node-windows').EventLogger;
   
     for (var ups of dbR) {
          createUPSThread(ups.UPSID);
-         console.log("Thread created for UPS :" + ups.UPSID)
-         
+        
       }
 })()
 
@@ -25,7 +24,7 @@ async function createUPSThread(upsid) {
   var dbS = await getStringDB(upsid);
  
    await createStringThread(dbS);
-    console.log("String thread created for :" + dbS.BatteryStringID )
+ 
     
 }
 async function createStringThread(stringJSON) {
