@@ -24,7 +24,7 @@ async function createUPSThread(upsid) {
 
   var dbS = await getStringDB(upsid);
  
-    createStringThread(dbS);
+   await createStringThread(dbS);
     console.log("String thread created for :" + dbS.BatteryStringID )
     
 }
@@ -115,7 +115,7 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringID)
          redirect: 'follow'
        };
 
-       console.log("BatteryId-" + j + "StringID-" + StringID)
+      
        fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
          .then(response => response.text())
         // .then(result => console.log(result))
