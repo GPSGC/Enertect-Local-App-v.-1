@@ -60,7 +60,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                 socket.end()
             if (Type == "Volt")
                {
-               // voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID);
+                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID);
                }
               
             }).catch(function (err) {
