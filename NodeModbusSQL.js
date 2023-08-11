@@ -368,4 +368,19 @@ app.put('/updateInStringCurrent', jsonParser, function (req, res) {
     });
 
 });
- 
+app.post('/insertarray', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDashboardVoltageNew (BatteryStringID,DashboardVoltageArray) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});

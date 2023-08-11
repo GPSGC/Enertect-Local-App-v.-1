@@ -74,7 +74,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                // voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
                if (Type == "Volt")
                {
-                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId);
+                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID);
                }
                else if(Type == "IR")
                 {
@@ -121,8 +121,29 @@ async function delayByMS(time) {
 //         modbusRemote.post(finalJSON2Upload);
 //     } catch (err) { console.log(err); }
 // }
-async function voltageSaveDBSQL(value,firstBatteryId)
+async function voltageSaveDBSQL(value,firstBatteryId,StringID)
 {
+  //*********************************Add in DB array*****************************************
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+
+  var raw = JSON.stringify({
+      "BatteryStringID": StringID,
+    "Value": value
+  });
+
+  var requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
+  };
+
+  fetch("http://localhost:1212/insertarray", requestOptions)
+    .then(response => response.text())
+    .then(result => console.log(result))
+    .catch(error => console.log('error', error));
+  //********************************************************************************************
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
      
        //*********************************Add in DB*****************************************
