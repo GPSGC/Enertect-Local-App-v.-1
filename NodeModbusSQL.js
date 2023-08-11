@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    // user: "nodeIndus2020",
-    // password: "nodeIndus2020",
-    // database: "NodeModbus",
-    // server: '114.79.133.104',
-    user: "NodeModbus",
-    password: "nodemodbus",
+    user: "nodeIndus2020",
+    password: "nodeIndus2020",
     database: "NodeModbus",
-    server: 'localhost',
+    server: '114.79.133.104',
+    // user: "NodeModbus",
+    // password: "nodemodbus",
+    // database: "NodeModbus",
+    // server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -34,7 +34,7 @@ app.get('/', function (req, res) {
 var server = app.listen(1212, function () {
     console.log(`Server is running ${port}`);
 });
-app.get('/getUPSStringData', function (req, res) {
+app.get('/getUPSStringData',jsonParser, function (req, res) {
     // connect to your database
     sql.connect(config, function (err) {
 
@@ -47,7 +47,28 @@ app.get('/getUPSStringData', function (req, res) {
         request.query(`SELECT BatteryStringInfo.BatteryStringID, BatteryStringInfo.UPSID, BatteryStringInfo.NoOfBattery, BatteryStringInfo.ControlModuleStringID, BatteryStringInfo.StringName, UPSInfo.UPSName, UPSInfo.IPAddress, UPSInfo.COMPort, 
         UPSInfo.ControlModuleID * 16 + BatteryStringInfo.ControlModuleStringID AS SlaveID
  FROM            BatteryStringInfo INNER JOIN
-        UPSInfo ON BatteryStringInfo.UPSID = UPSInfo.UPSID`, function (err, recordset) {
+        UPSInfo ON BatteryStringInfo.UPSID = UPSInfo.UPSID WHERE (BatteryStringInfo.UPSID='${req.body.UPSID}')`, function (err, recordset) {
+
+            if (err) console.log(err)
+
+            // send records as a response
+            res.send(recordset);
+
+        });
+    });
+});
+app.get('/getUPSData', function (req, res) {
+    // connect to your database
+    sql.connect(config, function (err) {
+
+        if (err) console.log(err);
+
+        // create Request object
+        var request = new sql.Request();
+
+        // query to the database and get the records
+        request.query(`SELECT UPSID, UPSName,  UPSModel, ControlModuleID,COMPort, IPAddress,  NoOfBatteryPerString
+FROM  UPSInfo`, function (err, recordset) {
 
             if (err) console.log(err)
 
