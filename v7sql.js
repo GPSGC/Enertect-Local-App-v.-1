@@ -31,26 +31,26 @@ async function createStringThread(stringJSON) {
     //  {
       for (var string of stringJSON)  
         {
-            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             //await delayByMS(PoolingSleep);
-            console.log("Time to read - Voltage")
+            console.log("Time to read - Voltage"+ " Bank Name is " + string.SlaveID)
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
-            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
            // await delayByMS(PoolingSleep);
-            console.log("Time to read - IR")
+            console.log("Time to read - IR" + " Bank Name is " + string.SlaveID)
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
-            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             //await delayByMS(PoolingSleep);
-            console.log("Time to read - Temp")
+            console.log("Time to read - Temp" + " Bank Name is " + string.SlaveID)
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
 
-            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             //await delayByMS(PoolingSleep);
-            console.log("Time to read - SC/SV/AT")
+            console.log("Time to read - SC/SV/AT" + " Bank Name is " + string.SlaveID)
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
 
-            console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
-            await delayByMS(NextRoundSleep);
+            //console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
+            //await delayByMS(NextRoundSleep);
             
             firstBatteryId += string.NoOfBattery;
         
@@ -518,7 +518,7 @@ function conversionForCurrent(value)
     }
     CurrenDecimal=BinaryToDecimal(newbinary);
     CurrenDecimal = CurrenDecimal * negPos;
-    console.log(CurrenDecimal);
+    //console.log(CurrenDecimal);
     return CurrenDecimal;
 }
 function BinaryToDecimal(binary) {
