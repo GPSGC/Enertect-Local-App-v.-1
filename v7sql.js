@@ -27,8 +27,7 @@ async function createUPSThread(upsid) {
 async function createStringThread(stringJSON) {
 
   var firstBatteryId = 1;
- 
-    // for (var i = 0; i < stringJSON.length; i++)
+     // for (var i = 0; i < stringJSON.length; i++)
     //  {
       for (var string of stringJSON)  
         {
