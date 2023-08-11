@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    user: "nodeIndus2020",
-    password: "nodeIndus2020",
-    database: "NodeModbus",
-    server: '114.79.133.104',
-    // user: "NodeModbus",
-    // password: "nodemodbus",
+    // user: "nodeIndus2020",
+    // password: "nodeIndus2020",
     // database: "NodeModbus",
-    // server: 'localhost',
+    server: '114.79.133.104',
+    user: "NodeModbus",
+    password: "nodemodbus",
+    database: "NodeModbus",
+    server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -34,7 +34,7 @@ app.get('/', function (req, res) {
 var server = app.listen(1212, function () {
     console.log(`Server is running ${port}`);
 });
-app.get('/getUPSStringData',jsonParser, function (req, res) {
+app.post('/getUPSStringData',jsonParser, function (req, res) {
     // connect to your database
     sql.connect(config, function (err) {
 

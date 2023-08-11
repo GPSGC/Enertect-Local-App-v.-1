@@ -9,7 +9,7 @@ var EventLogger = require('node-windows').EventLogger;
 (async () => {
     //await modbusLocal.replicate.from(modbusRemote);
     var dbR = await getDB(); // await modbusLocal.query("typeGet", { key: "UPS" });
-   console.log(dbR)
+   //console.log(dbR)
     for (var ups of dbR) {
          createUPSThread(ups.UPSID);
       }
@@ -21,42 +21,70 @@ var NextRoundSleep=1000;
 async function createUPSThread(upsid) {
 
   var dbS = await getStringDB(upsid);
-  console.log(dbS)
-  //createStringThread(dbS.Rows) 
+   console.log(dbS)
+   //createStringThread(dbS.Rows);
+   var firstBatteryId = 1;
+   for (var string of dbS)
+   {
+       console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+       await delayByMS(PoolingSleep);
+       console.log("Time to read - Voltage")
+       await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
+       console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+       await delayByMS(PoolingSleep);
+       console.log("Time to read - Temperature")
+       await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
+       console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+       await delayByMS(PoolingSleep);
+       console.log("Time to read - Temperature")
+       await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
+
+       console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+       await delayByMS(PoolingSleep);
+       console.log("Time to read - Temperature")
+       await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
+
+       console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
+       await delayByMS(NextRoundSleep);
+       
+       firstBatteryId += string.NoOfBattery;
+   
+   //await delayByMS(ups.SleepMSPooling);
+  }
 }
-async function createStringThread(stringJSON) {
+// async function createStringThread(stringJSON) {
 
-  var firstBatteryId = 1;
-    // for (var i = 0; i < stringJSON.length; i++)
-    //  {
-        for( var string of stringJSON)
-        {
-            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Voltage")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
-            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
-            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
+//   var firstBatteryId = 1;
+//     // for (var i = 0; i < stringJSON.length; i++)
+//     //  {
+//         for (var string of stringJSON)
+//         {
+//             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+//             await delayByMS(PoolingSleep);
+//             console.log("Time to read - Voltage")
+//             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
+//             console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+//             await delayByMS(PoolingSleep);
+//             console.log("Time to read - Temperature")
+//             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
+//             console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+//             await delayByMS(PoolingSleep);
+//             console.log("Time to read - Temperature")
+//             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
 
-            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
+//             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+//             await delayByMS(PoolingSleep);
+//             console.log("Time to read - Temperature")
+//             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
 
-            console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
-            await delayByMS(NextRoundSleep);
+//             console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
+//             await delayByMS(NextRoundSleep);
             
-            firstBatteryId += string.NoOfBattery;
+//             firstBatteryId += string.NoOfBattery;
         
-        //await delayByMS(ups.SleepMSPooling);
-    }
-}
+//         //await delayByMS(ups.SleepMSPooling);
+//     }
+// }
 
 //@modbus
 async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
@@ -489,10 +517,10 @@ async function getStringDB(upsid)
     var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
     var resultDB = await fetch("http://localhost:1212/getUPSStringData", requestOptions);
 
-    console.log(resultDB);
+    //console.log(resultDB);
     var tempJSON = await resultDB.json();
     var StringInfo = tempJSON.recordset;
-    console.log(StringInfo)
+   //console.log(StringInfo)
 
     return StringInfo;
 
