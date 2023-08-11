@@ -50,13 +50,14 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
     socket.connect({ 'host': ipModbusServer, 'port': portModbusServer })
     socket.on('connect', function () {
         client.readHoldingRegisters(registerStartInteger, registerNumberReadInteger)
-            .then(function (resp) {
-                //console.log(resp.response._body.valuesAsArray)
+            .then(function (resp)
+             {
+                console.log("Slaveid" +  bankDeviceId)
+                console.log(resp.response._body.valuesAsArray)
                 socket.end()
-               // voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
-               if (Type == "Volt")
+            if (Type == "Volt")
                {
-                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID);
+               // voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID);
                }
               
             }).catch(function (err) {
