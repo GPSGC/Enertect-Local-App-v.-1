@@ -143,6 +143,7 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringID)
     .then(response => response.text())
     .then(result => console.log(result))
     .catch(error => console.log('error', error));
+    
   //********************************************************************************************
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
      
