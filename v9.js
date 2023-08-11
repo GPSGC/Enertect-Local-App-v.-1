@@ -9,9 +9,10 @@ var EventLogger = require('node-windows').EventLogger;
 (async () => {
    
     var dbR = await getDB(); 
-   //console.log(dbR)
+  
     for (var ups of dbR) {
          createUPSThread(ups.UPSID);
+         console.log("Thread created for UPS :" + ups.UPSID)
          
       }
 })()
@@ -24,23 +25,19 @@ async function createUPSThread(upsid) {
   var dbS = await getStringDB(upsid);
  
     createStringThread(dbS);
+    console.log("String thread created for :" + dbS.BatteryStringID )
     
 }
 async function createStringThread(stringJSON) {
   var firstBatteryId = 1;
-     // for (var i = 0; i < stringJSON.length; i++)
-    //  {
+   
       for (var string of stringJSON)  
         {
            
-            console.log("Time to read - Voltage"+ "-UPS Name is: " + string.UPSID +" Bank Name is: " + string.StringName +"-"+ string.SlaveID)
-            await  readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
+             await  readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
          
-            
-            firstBatteryId += string.NoOfBattery;
-        
-     
-    }
+           firstBatteryId += string.NoOfBattery;
+           }
 }
 
 //@modbus
@@ -121,7 +118,7 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringID)
        console.log("BatteryId-" + j + "StringID-" + StringID)
        fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
          .then(response => response.text())
-         .then(result => console.log(result))
+        // .then(result => console.log(result))
          .catch(error => console.log('error', error));
        //********************************************************************************************
       // let batteryIdinsert=j;
