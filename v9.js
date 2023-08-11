@@ -5,7 +5,9 @@ const moduleSql= require('./NodeModbusSQL.js');
 const fs = require("fs");
 
 var EventLogger = require('node-windows').EventLogger;
- var log = new EventLogger('NodeModbusApp');       
+ var log = new EventLogger('NodeModbusApp');   
+ 
+ var containerError = [];
 //@main
 (async () => {
    
