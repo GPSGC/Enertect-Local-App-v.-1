@@ -107,7 +107,8 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringID)
 
        var raw = JSON.stringify({
            "BatteryId": j,
-         "Value": parseInt(value[i])/1000
+         "Value": parseInt(value[i])/1000,
+         "StringId" : StringID
        });
 
        var requestOptions = {
@@ -117,7 +118,7 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringID)
          redirect: 'follow'
        };
 
-       console.log("BatteryId" + j + "StringID" + StringID)
+       console.log("BatteryId-" + j + "StringID-" + StringID)
        fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions)
          .then(response => response.text())
          .then(result => console.log(result))
