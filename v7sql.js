@@ -15,7 +15,7 @@ var EventLogger = require('node-windows').EventLogger;
       }
 })()
 
-var PoolingSleep = 2000;
+var PoolingSleep = 1500;
 var NextRoundSleep=1000;
 //@ups
 async function createUPSThread(upsid) {
