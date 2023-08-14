@@ -29,7 +29,7 @@ process.argv.forEach((value, index) => {
     var dbR = await modbusLocal.query("typeGet", { key: "UPS" });
     //console.log(dbR);
     for (ups of dbR.rows) {
-        //console.log(ups);
+         console.log(ups);
         createUPSThread(ups.value);
     }
     //createUPSThread(dbR.rows);
@@ -81,10 +81,11 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
     socket.on('connect', function () {
         client.readHoldingRegisters(registerStartInteger, registerNumberReadInteger)
             .then(function (resp) {
-                //console.log(resp.response._body.valuesAsArray)
+                console.log("IP : " +ipModbusServer + " Slaveid : " +  bankDeviceId)
+                 console.log(resp.response._body.valuesAsArray)
 
                 socket.end()
-                voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
+                ///voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
             }).catch(function (err) {
                 console.log(err);
                 socket.end()
