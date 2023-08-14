@@ -20,32 +20,63 @@ var NextRoundSleep=1000;
 async function createUPSThread(upsid) {
 
   var dbS = await getStringDB(upsid);
-  console.log(dbS)
-  //createStringThread(dbS.Rows) 
+ // console.log(dbS)
+  // createStringThread(dbS.Rows) 
+  var firstBatteryId = 1;
+  // for (var i = 0; i < stringJSON.length; i++)
+  //  {
+      for(var string of dbS)
+      {
+          console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+          await delayByMS(PoolingSleep);
+          console.log("Time to read - Voltage")
+          await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
+          // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+          // await delayByMS(PoolingSleep);
+          // console.log("Time to read - Temperature")
+          // await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
+          // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+          // await delayByMS(PoolingSleep);
+          // console.log("Time to read - Temperature")
+          // await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
+
+          
+          // console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+          // await delayByMS(PoolingSleep);
+          console.log("Time to read - Temperature")
+          await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
+
+          console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
+          await delayByMS(NextRoundSleep);
+          
+          firstBatteryId += string.NoOfBattery;
+      
+      //await delayByMS(ups.SleepMSPooling);
+  }
 }
 async function createStringThread(stringJSON) {
 
   var firstBatteryId = 1;
     // for (var i = 0; i < stringJSON.length; i++)
     //  {
-        for( var string of stringJSON)
+        for(var string of stringJSON)
         {
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             await delayByMS(PoolingSleep);
             console.log("Time to read - Voltage")
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
-            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
-            console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
-            console.log("Time to read - Temperature")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
+            // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+            // await delayByMS(PoolingSleep);
+            // console.log("Time to read - Temperature")
+            // await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"IR")
+            // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+            // await delayByMS(PoolingSleep);
+            // console.log("Time to read - Temperature")
+            // await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Temp")
 
             
-            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-            await delayByMS(PoolingSleep);
+            // console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            // await delayByMS(PoolingSleep);
             console.log("Time to read - Temperature")
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
 
@@ -74,7 +105,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                // voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
                if (Type == "Volt")
                {
-                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId);
+                voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID);
                }
                else if(Type == "IR")
                 {
@@ -121,7 +152,7 @@ async function delayByMS(time) {
 //         modbusRemote.post(finalJSON2Upload);
 //     } catch (err) { console.log(err); }
 // }
-async function voltageSaveDBSQL(value,firstBatteryId)
+async function voltageSaveDBSQL(value,firstBatteryId,StringId)
 {
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
      
@@ -143,7 +174,7 @@ async function voltageSaveDBSQL(value,firstBatteryId)
                console.log("Insert--"+"count : " + count + "--batteryidinsert : " + batteryIdinsert+ "--Value : "+Value)
                var myHeaders = new Headers();
                myHeaders.append("Content-Type", "application/json");
-                var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000 });
+                var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000,"StringId":StringId });
                 var requestOptions = { method: 'POST',headers: myHeaders, body: raw, redirect: 'follow'};
 
               fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions).then(response => response.text())
