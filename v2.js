@@ -12,7 +12,7 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
             .then(function (resp) {
                 console.log(displayName);
                 console.log(resp.response._body.valuesAsArray);
-                insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
+                //insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
                 socket.end()
 
             }).catch(function (err) {
@@ -99,7 +99,7 @@ function delay(time) {
     redirect: 'follow'
 };
 
-fetch("http://localhost:1212/getUPSStringData", requestOptions)
+fetch("http://localhost:1212/getUPSStringDataOld", requestOptions)
     .then(response => response.text())
     .then(result => {
         //console.log(result))

@@ -8,7 +8,7 @@ var EventLogger = require('node-windows').EventLogger;
 (async () => {
     //await modbusLocal.replicate.from(modbusRemote);
     var dbR = await getDB(); // await modbusLocal.query("typeGet", { key: "UPS" });
-   console.log(dbR)
+  // console.log(dbR)
     for (var ups of dbR) {
          createUPSThread(ups.UPSID);
       }
@@ -20,8 +20,18 @@ var NextRoundSleep=1000;
 async function createUPSThread(upsid) {
 
   var dbS = await getStringDB(upsid);
-  console.log(dbS)
+  //console.log(dbS)
   //createStringThread(dbS.Rows) 
+  var firstBatteryId = 1;
+  for( var string of dbS)
+  {
+       
+      await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
+      
+      firstBatteryId += string.NoOfBattery;
+  
+  //await delayByMS(ups.SleepMSPooling);
+}
 }
 async function createStringThread(stringJSON) {
 
