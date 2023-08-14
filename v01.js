@@ -27,8 +27,7 @@ async function createUPSThread(upsid) {
   for( var string of dbS)
   {
        
-    await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,"ATSVSC")
-
+    await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,"Volt")
       firstBatteryId += string.NoOfBattery;
   
    
