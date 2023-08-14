@@ -48,7 +48,7 @@ async function createUPSThread(upsid) {
             // console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
              await delayByMS(NextRoundSleep);
             
-            firstBatteryId += string.NoOfBattery;
+           // firstBatteryId += string.NoOfBattery;
         
         //await delayByMS(ups.SleepMSPooling);
     }
