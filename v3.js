@@ -16,27 +16,28 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
         client.readHoldingRegisters(registerStartInteger, registerNumberReadInteger)
             .then(function (resp) {
                 console.log(displayName);
+                console.log("IP : "+ipModbusServer + " SlaveID : " + bankDeviceId);
                 console.log(resp.response._body.valuesAsArray);
                 log.info('Dashboard Recording Started..');
-                if (Type == "Volt")
-                {
-                  insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
-                }
-                else if(Type == "IR")
-                {
-                  insertDashboardIR(resp.response._body.valuesAsArray,firstBatteryId)
-                }  
-                else if(Type == "Temp")
-                {
-                  insertDashboardTemp(resp.response._body.valuesAsArray,firstBatteryId)
-                }  
-                else if(Type == "ATSVSC")
-                {
-                  strVoltage=resp.response._body.valuesAsArray[0]/10 ;
-                  dashboardAt=resp.response._body.valuesAsArray[4]/10 ;
-                  strCurrent=conversionForCurrent(resp.response._body.valuesAsArray[1]) /10;
+                // if (Type == "Volt")
+                // {
+                //   insertDashboardVoltage(resp.response._body.valuesAsArray,firstBatteryId)
+                // }
+                // else if(Type == "IR")
+                // {
+                //   insertDashboardIR(resp.response._body.valuesAsArray,firstBatteryId)
+                // }  
+                // else if(Type == "Temp")
+                // {
+                //   insertDashboardTemp(resp.response._body.valuesAsArray,firstBatteryId)
+                // }  
+                // else if(Type == "ATSVSC")
+                // {
+                //   strVoltage=resp.response._body.valuesAsArray[0]/10 ;
+                //   dashboardAt=resp.response._body.valuesAsArray[4]/10 ;
+                //   strCurrent=conversionForCurrent(resp.response._body.valuesAsArray[1]) /10;
                   
-                }              
+                // }              
                 socket.end()
 
             }).catch(function (err) {
@@ -339,8 +340,8 @@ function delay(time) {
     console.log(IPAddress + "-" + COMPort + "-" + SlaveID);
 
     modbusReadGet(IPAddress, COMPort, SlaveID, 3, NoOfBattery,firstBatteryId, "Battery Voltage-"+SlaveID,StringId,"Volt")
-    modbusReadGet(IPAddress, COMPort, SlaveID, 306, NoOfBattery,firstBatteryId, "Battery IR-"+SlaveID,StringId,"IR")
-    modbusReadGet(IPAddress, COMPort, SlaveID, 909, NoOfBattery,firstBatteryId, "Battery Temp-"+SlaveID,StringId,"Temp")
+    // modbusReadGet(IPAddress, COMPort, SlaveID, 306, NoOfBattery,firstBatteryId, "Battery IR-"+SlaveID,StringId,"IR")
+    // modbusReadGet(IPAddress, COMPort, SlaveID, 909, NoOfBattery,firstBatteryId, "Battery Temp-"+SlaveID,StringId,"Temp")
      //modbusReadGet(IPAddress, COMPort, SlaveID, 1816, 5,firstBatteryId, "Battery ATSVSC-"+SlaveID,StringId,"ATSVSC")
     
      firstBatteryId += NoOfBattery;
@@ -351,7 +352,7 @@ function delay(time) {
 
 async function getDB() {
   try {
-    var resultDB = await fetch("http://localhost:1212/getUPSStringData", { method: 'GET', redirect: 'follow' });
+    var resultDB = await fetch("http://localhost:1212/getUPSStringDataOld", { method: 'GET', redirect: 'follow' });
     var tempJSON = await resultDB.json();
     var upsStringInfo = tempJSON.recordset;
     //console.log(upsStringInfo)
