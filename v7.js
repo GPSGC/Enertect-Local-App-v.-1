@@ -19,27 +19,17 @@ async function createUPSThread(upsJSON) {
     for (ups of upsJSON) {
         for (bank of ups.value.UPSBanks) {
 
-            console.log("I am sleeping for " + ups.value.PoolingSleep + "Bank Name is " + bank.DisplayName)
-            await delayByMS(ups.value.PoolingSleep);
-            console.log("Time to read - Voltage")
-            await readModbus(ups.value.IP, ups.value.Port, bank.DeviceNumber, 0, bank.Blocks, ups.value.DisplayName)
-
-            console.log("I am sleeping for " + ups.value.PoolingSleep + "Bank Name is " + bank.DisplayName)
-            await delayByMS(ups.value.PoolingSleep);
-            console.log("Time to read - Temperature")
-            await readModbus(ups.value.IP, ups.value.Port, bank.DeviceNumber, 909, bank.Blocks, ups.value.DisplayName)
-
-            console.log("Next ROUND - Another bank wil sleep for " + ups.value.NextRoundSleep)
-            await delayByMS(ups.value.NextRoundSleep);
+            await readModbus(ups.value.IP, ups.value.Port, bank.DeviceNumber, 0, bank.Blocks, ups.value.DisplayName, bank.DisplayName)
+            await delayByMS(10000);
 
         }
-        //await delayByMS(ups.SleepMSPooling);
+
     }
 }
 
 //@modbus
 async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
-    registerStartInteger, registerNumberReadInteger, DisplayName) {
+    registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName) {
 
     const socket = new net.Socket()
     const client = new modbus.client.TCP(socket, bankDeviceId, 15000);
@@ -50,6 +40,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
             .then(function (resp) {
                 //console.log(resp.response._body.valuesAsArray)
                 socket.end()
+
                 voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
             }).catch(function (err) {
                 console.log(err);
@@ -65,13 +56,14 @@ async function delayByMS(time) {
 }
 
 //@voltage
-async function voltageSaveDB(voltageArray, DisplayName) {
+async function voltageSaveDB(voltageArray, DisplayName, BankDisplayName) {
     var voltageJSONArray = [];
 
     var finalJSON2Upload = {
         "Date": new Date(),
         "Type": "VoltageValue",
-        "UPSDisplayName": DisplayName,
+        "DisplayName": DisplayName,
+        "DisplayNameBank": BankDisplayName,
         "VoltageValues": voltageArray
     }
     console.log(finalJSON2Upload);

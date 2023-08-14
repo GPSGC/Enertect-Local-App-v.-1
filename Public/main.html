@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>q</title>
+
+        <script src="js/pouchdb.min.js"></script>
+
+    </head>
+
+    <body>
+        <div id="mainDiv"></div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            //@var
+            var socket = io();
+
+            var dRemote = new PouchDB("https://admin:admin@1.qindus.io/d", { revs_limit: 1, auto_compaction: true });
+            var dLocal = new PouchDB("d", { revs_limit: 1, auto_compaction: true });
+
+            //@main
+            (async () => {
+
+                await dLocal.replicate.from(dRemote);
+                var dbR = await dLocal.query("typeGet", { key: "UPS" });
+
+                for (ups of dbR.rows) {
+                    mainDiv.innerHTML += `
+                                        <p> 
+                                            <button id="startBtn">Start ${ups.DIsplayName}</button>
+                                            <button id="stopBtn">Stop ${ups.DIsplayName}</button>
+                                        </p>
+
+                                        <p></p>
+                                    `;
+                }
+            })()
+        </script>
+    </body>
+
+</html>
