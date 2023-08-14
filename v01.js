@@ -8,9 +8,10 @@ var EventLogger = require('node-windows').EventLogger;
 (async () => {
     //await modbusLocal.replicate.from(modbusRemote);
     var dbR = await getDB(); // await modbusLocal.query("typeGet", { key: "UPS" });
-  // console.log(dbR)
+   //console.log(dbR)
     for (var ups of dbR) {
          createUPSThread(ups.UPSID);
+         await delayByMS(2000);
       }
 })()
 
@@ -22,7 +23,7 @@ async function createUPSThread(upsid) {
   var dbS = await getStringDB(upsid);
   //console.log(dbS)
   //createStringThread(dbS.Rows) 
-  var firstBatteryId = 1;
+   var firstBatteryId = 1;
   for( var string of dbS)
   {
        
@@ -30,7 +31,7 @@ async function createUPSThread(upsid) {
 
       firstBatteryId += string.NoOfBattery;
   
-  //await delayByMS(ups.SleepMSPooling);
+   
 }
 }
 async function createStringThread(stringJSON) {
@@ -144,10 +145,10 @@ async function getStringDB(upsid)
     var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
     var resultDB = await fetch("http://localhost:1212/getUPSStringData", requestOptions);
 
-    console.log(resultDB);
+   // console.log(resultDB);
     var tempJSON = await resultDB.json();
     var StringInfo = tempJSON.recordset;
-    console.log(StringInfo)
+    //console.log(StringInfo)
 
     return StringInfo;
 
