@@ -55,7 +55,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
         client.readHoldingRegisters(registerStartInteger, registerNumberReadInteger)
             .then(function (resp)
              {
-                console.log("Slaveid" +  bankDeviceId)
+                console.log("IP : " +ipModbusServer + "Slaveid : " +  bankDeviceId)
                 console.log(resp.response._body.valuesAsArray)
                 socket.end()
             if (Type == "Volt")
