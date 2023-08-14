@@ -57,6 +57,29 @@ app.post('/getUPSStringData',jsonParser, function (req, res) {
         });
     });
 });
+app.get('/getUPSStringDataOld',jsonParser, function (req, res) {
+    // connect to your database
+    sql.connect(config, function (err) {
+
+        if (err) console.log(err);
+
+        // create Request object
+        var request = new sql.Request();
+
+        // query to the database and get the records
+        request.query(`SELECT BatteryStringInfo.BatteryStringID, BatteryStringInfo.UPSID, BatteryStringInfo.NoOfBattery, BatteryStringInfo.ControlModuleStringID, BatteryStringInfo.StringName, UPSInfo.UPSName, UPSInfo.IPAddress, UPSInfo.COMPort, 
+        UPSInfo.ControlModuleID * 16 + BatteryStringInfo.ControlModuleStringID AS SlaveID
+ FROM            BatteryStringInfo INNER JOIN
+        UPSInfo ON BatteryStringInfo.UPSID = UPSInfo.UPSID  `, function (err, recordset) {
+
+            if (err) console.log(err)
+
+            // send records as a response
+            res.send(recordset);
+
+        });
+    });
+});
 app.get('/getUPSData', function (req, res) {
     // connect to your database
     sql.connect(config, function (err) {
