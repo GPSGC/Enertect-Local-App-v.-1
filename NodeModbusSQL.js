@@ -154,7 +154,7 @@ app.put('/updateDashboardVoltageByBatteryID',jsonParser,function(req,res){
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardIR (BatteryId,DashboardIR) VALUES ('${req.body.BatteryId}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeDashboardIR (BatteryId,DashboardIR,StringId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -203,7 +203,7 @@ app.put('/updateDashboardIRByBatteryID',jsonParser,function(req,res){
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardTemp (BatteryId,DashboardTemp) VALUES ('${req.body.BatteryId}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeDashboardTemp (BatteryId,DashboardTemp,StringId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
