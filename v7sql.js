@@ -94,15 +94,14 @@ async function createStringThread(stringJSON) {
         //await delayByMS(ups.SleepMSPooling);
     }
 }
-async function createDischargeThread(isDischarge,UPSID)
+async function createDischargeThread(UPSID)
 {
   console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
   var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
   console.log("lastTimeId : " + lastDischargeRecordTimeId );
 
   var dbS = await getStringDB(UPSID);
-   if (isDischarge == true)
-   {
+   
     var firstBatteryId=1;
     for(var string of dbS)
         {
@@ -118,9 +117,7 @@ async function createDischargeThread(isDischarge,UPSID)
             await delayByMS(PoolingSleep);
           
         }
-
-   
-  }
+ 
 }
 //@modbus
 async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
@@ -161,8 +158,8 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                  //*********************************************Check Dicharge********************************* 
                   console.log("Checking discharge : " + " UPSID : "+UPSID + "-discharge Status : "+ checkDischarge(strVoltage,strCurrent,registerNumberReadInteger));
                   if (checkDischarge(strVoltage,strCurrent,registerNumberReadInteger))
-                  {
-                    createDischargeThread(true,UPSID);
+                  { 
+                    createDischargeThread(UPSID);
                   }
                    //********************************************************************************************
                }  
