@@ -105,7 +105,7 @@ app.post('/insertInDashboardVoltage', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryId,DashboardVoltage,StringId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}')`;
+        var sqlquery = `INSERT INTO NodeDashboardVoltage (BatteryId,DashboardVoltage,StringId,NodeDashboardTimeId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}','${req.body.NodeDashboardTimeId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -154,7 +154,7 @@ app.put('/updateDashboardVoltageByBatteryID',jsonParser,function(req,res){
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardIR (BatteryId,DashboardIR,StringId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}')`;
+        var sqlquery = `INSERT INTO NodeDashboardIR (BatteryId,DashboardIR,StringId,NodeDashboardTimeId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}','${req.body.NodeDashboardTimeId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -203,7 +203,7 @@ app.put('/updateDashboardIRByBatteryID',jsonParser,function(req,res){
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashboardTemp (BatteryId,DashboardTemp,StringId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}')`;
+        var sqlquery = `INSERT INTO NodeDashboardTemp (BatteryId,DashboardTemp,StringId,NodeDashboardTimeId) VALUES ('${req.body.BatteryId}','${req.body.Value}','${req.body.StringId}','${req.body.NodeDashboardTimeId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -267,7 +267,7 @@ app.post('/insertInStringVoltage', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeStringVoltage (BatteryStringID,StringVoltage) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeStringVoltage (BatteryStringID,StringVoltage,NodeDashboardTimeId) VALUES ('${req.body.BatteryStringID}','${req.body.Value}','${req.body.NodeDashboardTimeId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -315,7 +315,7 @@ app.post('/insertInDAshboardAT', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDashBoardAT (BatteryStringID,AT1) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeDashBoardAT (BatteryStringID,AT1,NodeDashboardTimeId) VALUES ('${req.body.BatteryStringID}','${req.body.Value}','${req.body.NodeDashboardTimeId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -363,7 +363,7 @@ app.post('/insertInStringCurrent', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeStringCurrent (BatteryStringID,StringCurrent) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeStringCurrent (BatteryStringID,StringCurrent,NodeDashboardTimeId) VALUES ('${req.body.BatteryStringID}','${req.body.Value}','${req.body.NodeDashboardTimeId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -396,6 +396,40 @@ app.post('/insertarray', jsonParser, function (req, res) {
         if (err) throw err;
        // console.log("Connected!");
         var sqlquery = `INSERT INTO NodeDashboardVoltageNew (BatteryStringID,DashboardVoltageArray) VALUES ('${req.body.BatteryStringID}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInDashboardTime', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeDashboardTime (DashboardTime) OUTPUT Inserted.NodeDashboardTimeId  VALUES ( '${req.body.DashboardTime}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+
+app.delete('/deleteDashboardData', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `Delete from NodeDashboardVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardTime where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
