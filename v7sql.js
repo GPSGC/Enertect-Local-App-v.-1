@@ -37,19 +37,19 @@ async function createUPSThread(upsid,NodeDashboardTimeId) {
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
              await delayByMS(PoolingSleep);
             console.log("Time to read - Voltage")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,"Volt")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"Volt")
             // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
             await delayByMS(PoolingSleep);
             console.log("Time to read - IR")
-             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,"IR")
+             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"IR")
             // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
              await delayByMS(PoolingSleep);
              console.log("Time to read - Temp")
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,"Temp")
-           //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"Temp")
+            //console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
               await delayByMS(PoolingSleep);
              console.log("Time to read - ATSVSC")
-              await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,"ATSVSC")
+              await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"ATSVSC")
 
             console.log("Next ROUND - Another bank wil sleep for " + NextRoundSleep)
              await delayByMS(NextRoundSleep);
@@ -94,10 +94,37 @@ async function createStringThread(stringJSON) {
         //await delayByMS(ups.SleepMSPooling);
     }
 }
+async function createDischargeThread(isDischarge,UPSID)
+{
+  console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
+  var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
+  console.log("lastTimeId : " + lastDischargeRecordTimeId );
 
+  var dbS = await getStringDB(UPSID);
+   if (isDischarge == true)
+   {
+    var firstBatteryId=1;
+    for(var string of dbS)
+        {
+          console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+          await delayByMS(PoolingSleep);
+          console.log("Time to read - DischargeVoltage")
+          await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeVolt")
+          // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+          await delayByMS(PoolingSleep);
+          console.log("Time to read - DischargeSV/SC")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeSVSC")
+          // console.log("I am sleeping for " + string.PoolingSleep + "Bank Name is " + string.SlaveID)
+            await delayByMS(PoolingSleep);
+          
+        }
+
+   
+  }
+}
 //@modbus
 async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
-    registerStartInteger, registerNumberReadInteger, DisplayName,firstBatteryId,StringID,NodeDashboardTimeId,Type) {
+    registerStartInteger, registerNumberReadInteger, DisplayName,firstBatteryId,StringID,NodeDashboardTimeId,UPSID,Type) {
 
     const socket = new net.Socket()
     const client = new modbus.client.TCP(socket, bankDeviceId, 15000);
@@ -130,7 +157,28 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                  StrVoltageSaveDBSQL(StringID,strVoltage,NodeDashboardTimeId);
                  ATSaveDBSQL(StringID,dashboardAt,NodeDashboardTimeId);
                  StrCurrentSaveDBSQL(StringID,strCurrent,NodeDashboardTimeId);
+                  
+                 //*********************************************Check Dicharge********************************* 
+                  console.log("Checking discharge : " + " UPSID : "+UPSID + "-discharge Status : "+ checkDischarge(strVoltage,strCurrent,registerNumberReadInteger));
+                  if (checkDischarge(strVoltage,strCurrent,registerNumberReadInteger))
+                  {
+                    createDischargeThread(true,UPSID);
+                  }
+                   //********************************************************************************************
                }  
+               else if(Type == "DischargeVolt")
+               {
+                insertDischargeVoltage(resp.response._body.valuesAsArray,firstBatteryId,NodeDashboardTimeId,StringID);
+               }
+               else if(Type == "DischargeSVSC")
+               {
+                disstrVoltage=resp.response._body.valuesAsArray[0]/10 ;
+                 disstrCurrent=conversionForCurrent(resp.response._body.valuesAsArray[1]) /10;
+
+                insertInDischargeStrVoltage(disstrVoltage, NodeDashboardTimeId,StringID);
+                insertInDischargeStrCurrent(disstrCurrent, NodeDashboardTimeId,StringID);
+               }
+
             }).catch(function (err) {
                 console.log(err);
                 socket.end()
@@ -645,4 +693,145 @@ function BinaryToDecimal(binary) {
       decimal += Math.pow(2, binaryLength - 1 - i);
      }
      return decimal;
+}
+function checkDischarge(strVoltage,strCurrent,NoOfBattery)
+{ 
+    let m_discharge =false;
+    if (strVoltage != 0  && strCurrent != 0)  
+    {
+        
+        // dischargeOn = (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);
+        dischargeOn =   (strVoltage >50) && (strCurrent>1);// (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
+        dischargeOff  = (strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
+        if (dischargeOn)
+        {
+            console.log("Discharge Started !!");
+            m_discharge=true;
+        }
+        if (dischargeOff && m_discharge)
+        {
+            console.log("Discharge Stop !!");
+            m_discharge=false;
+        }
+        
+    }
+     return m_discharge;
+}
+async function insertDichargeRecord(UPSID)
+{
+      var lastDischargeRecordTimeId;
+      var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        var raw = JSON.stringify({
+            "UPSID": UPSID,"startdischarge": new Date()});
+        var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
+
+        var resultDB = await  fetch("http://localhost:1212/insertIndichargerecord", requestOptions)
+        var tempJSON = await resultDB.json();
+        var dbInfo = tempJSON.recordset;
+        var lastDischargerecordId = dbInfo[0].NodeDischargeRecordId;
+        
+     //*************************************************************************** */
+        var rawTime = JSON.stringify({
+          "NodeDischargeRecordId": lastDischargerecordId,
+          "DischargeRecordTime": new Date()
+        });
+
+        var requestOptions = {method: 'POST',headers: myHeaders,body: rawTime,redirect: 'follow'};
+
+      var resultTimeDB =await  fetch("http://localhost:1212/insertIndischargerecordTime", requestOptions)
+      var tempTimeJSON = await resultTimeDB.json();
+      var dbTimeInfo = tempTimeJSON.recordset;
+      var lastDischargeRecordTimeId = dbTimeInfo[0].NodeDischargeRecordTimeId;
+        
+      return lastDischargeRecordTimeId;
+}
+function insertDischargeVoltage(value,firstBatteryId,TimeId,stringId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+        //console.log("1 row inserted")
+
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "No": j,
+          "Value": parseInt(value[i])/1000,
+          "TimeId" :TimeId,
+          "StringId":stringId
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1212/insertInDischargeVoltage", requestOptions)
+          .then(response => response.text())
+          .then(result => console.log(result))
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+        
+      }
+}
+function insertInDischargeStrVoltage(value, TimeId,stringId)
+{
+  
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            
+          "Value": value,
+         
+          "StringId":stringId,
+          "NodeDischargeRecordTimeId":TimeId
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1212/insertInDischargeStrVoltage", requestOptions)
+          .then(response => response.text())
+          .then(result => console.log(result))
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+     
+}
+function insertInDischargeStrCurrent(value, TimeId,stringId)
+{
+  
+        //*********************************Add in DB*****************************************
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            
+          "Value":value,
+           
+          "StringId":stringId,
+          "NodeDischargeRecordTimeId":TimeId
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("http://localhost:1212/insertInDischargeStrCurrent", requestOptions)
+          .then(response => response.text())
+          .then(result => console.log(result))
+          .catch(error => console.log('error', error));
+        //********************************************************************************************
+     
 }
