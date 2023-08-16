@@ -428,7 +428,12 @@ app.delete('/deleteDashboardData', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `Delete from NodeDashboardVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        var sqlquery = ` Delete from NodeDashboardVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardIR where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardTemp where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashBoardAT where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeStringVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
         Delete from NodeDashboardTime where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)`;
         var request = new sql.Request();
 
