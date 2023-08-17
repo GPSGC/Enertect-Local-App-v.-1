@@ -11,16 +11,17 @@ var EventLogger = require('node-windows').EventLogger;
   
    deleteDashbaordData();  // delete previous dashboard records
    var NodeDashboardTimeId =  await getDashbaordTimeId();   //get latest inserted DashbaordTimeId
+   var NodeHistoryTimeId =  await getHistoryTimeId();
   
     for (var ups of dbR) {
-        createUPSThread(ups.UPSID,NodeDashboardTimeId);  }
+        createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  }
       
 })()
 
 var PoolingSleep = 1500;
 var NextRoundSleep=1000;
 //@ups
-async function createUPSThread(upsid,NodeDashboardTimeId) {
+async function createUPSThread(upsid,NodeDashboardTimeId,NodeHistoryTimeId) {
 
   var dbS = await getStringDB(upsid);
  
@@ -31,13 +32,13 @@ async function createUPSThread(upsid,NodeDashboardTimeId) {
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             await delayByMS(PoolingSleep);
          
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"Volt")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"Volt",NodeHistoryTimeId)
             await delayByMS(PoolingSleep);
           
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"IR")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 306, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"IR",NodeHistoryTimeId)
             await delayByMS(PoolingSleep);
           
-            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"Temp")
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 909, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"Temp",NodeHistoryTimeId)
             await delayByMS(PoolingSleep);
             
             await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, 5, "",firstBatteryId,string.BatteryStringID,NodeDashboardTimeId,string.UPSID,"ATSVSC")
@@ -74,7 +75,7 @@ async function createDischargeThread(UPSID)
 }
 //@modbus
 async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
-    registerStartInteger, registerNumberReadInteger, DisplayName,firstBatteryId,StringID,NodeDashboardTimeId,UPSID,Type) {
+    registerStartInteger, registerNumberReadInteger, DisplayName,firstBatteryId,StringID,NodeDashboardTimeId,UPSID,Type,NodeHistoryTimeId) {
 
     const socket = new net.Socket()
     const client = new modbus.client.TCP(socket, bankDeviceId, 15000);
@@ -86,19 +87,24 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                 console.log(resp.response._body.valuesAsArray)
                 socket.end()
                // voltageSaveDB(resp.response._body.valuesAsArray, DisplayName);
-               
+             
                if (Type == "Volt")
                {
                  voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeDashboardTimeId);
-               }
+                 HistoryvoltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeHistoryTimeId);
+              
+                }
                else if(Type == "IR")
                 {
                   IRSaveDBSQL(resp.response._body.valuesAsArray,firstBatteryId,StringID,NodeDashboardTimeId);
+                  HistoryIRSaveDBSQL(resp.response._body.valuesAsArray,firstBatteryId,StringID,NodeDashboardTimeId);
                 } 
                else if(Type == "Temp")
                {
                 TempSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeDashboardTimeId);
-               } 
+                HistoryTempSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeDashboardTimeId);
+
+              } 
                else if(Type == "ATSVSC")
                {
                  strVoltage=resp.response._body.valuesAsArray[0]/10 ;
@@ -161,6 +167,24 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringId,NodeDashboardTimeI
        
   }
 }
+async function HistoryvoltageSaveDBSQL(value,firstBatteryId,StringId,NodeHistoryTimeId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+     
+      let batteryIdinsert=j;
+      let Value=value[i];
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+       var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000,"StringId":StringId,"NodeHistoryTimeId":NodeHistoryTimeId });
+       var requestOptions = { method: 'POST',headers: myHeaders, body: raw, redirect: 'follow'};
+
+     fetch("http://localhost:1212/insertInHistoryVoltage", requestOptions).then(response => response.text())
+       .then(result => console.log(result))
+       .catch(error => console.log('error', error));
+     
+       
+  }
+}
 function IRSaveDBSQL(value,firstBatteryId,StringId,NodeDashboardTimeId)
 {
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
@@ -179,6 +203,24 @@ function IRSaveDBSQL(value,firstBatteryId,StringId,NodeDashboardTimeId)
             
   }
 }
+async function HistoryIRSaveDBSQL(value,firstBatteryId,StringId,NodeHistoryTimeId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+     
+      let batteryIdinsert=j;
+      let Value=value[i];
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+       var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000,"StringId":StringId,"NodeHistoryTimeId":NodeHistoryTimeId });
+       var requestOptions = { method: 'POST',headers: myHeaders, body: raw, redirect: 'follow'};
+
+     fetch("http://localhost:1212/insertInHistoryIR", requestOptions).then(response => response.text())
+       .then(result => console.log(result))
+       .catch(error => console.log('error', error));
+     
+       
+  }
+}
 function TempSaveDBSQL(value,firstBatteryId,StringId,NodeDashboardTimeId)
 {
     for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
@@ -193,6 +235,24 @@ function TempSaveDBSQL(value,firstBatteryId,StringId,NodeDashboardTimeId)
      fetch("http://localhost:1212/insertInDashboardTemp", requestOptions).then(response => response.text())
        .then(result => console.log(result))
        .catch(error => console.log('error', error));
+       
+  }
+}
+async function HistoryTempSaveDBSQL(value,firstBatteryId,StringId,NodeHistoryTimeId)
+{
+    for (i=0, j=firstBatteryId; i<value.length; i++, j++) {
+     
+      let batteryIdinsert=j;
+      let Value=value[i];
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+       var raw = JSON.stringify({"BatteryId": batteryIdinsert,"Value":Value/1000,"StringId":StringId,"NodeHistoryTimeId":NodeHistoryTimeId });
+       var requestOptions = { method: 'POST',headers: myHeaders, body: raw, redirect: 'follow'};
+
+     fetch("http://localhost:1212/insertInHistoryTemp", requestOptions).then(response => response.text())
+       .then(result => console.log(result))
+       .catch(error => console.log('error', error));
+     
        
   }
 }
@@ -482,4 +542,20 @@ function insertInDischargeStrCurrent(value, TimeId,stringId)
           .then(result => console.log(result))
           .catch(error => console.log('error', error));
        
+}
+
+async function getHistoryTimeId()
+ {
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  var raw = JSON.stringify({
+  "HistoryTime": new Date() 
+  });
+  var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
+  var resultDB = await fetch("http://localhost:1212/insertInHistoryTime", requestOptions)
+    // console.log(resultDB);
+   var tempJSON = await resultDB.json();
+   var StringInfo = tempJSON.recordset;
+   NodeHistoryTimeId= StringInfo[0].NodeHistoryTimeId;
+   return NodeHistoryTimeId;
 }

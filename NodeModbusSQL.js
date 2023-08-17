@@ -572,3 +572,68 @@ app.post('/UpdateStopDischargeByUPSID', jsonParser, function (req, res) {
     });
 
 });
+
+app.post('/insertInHistoryTime', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeHistoryTime (HistoryTime) OUTPUT Inserted.NodeHistoryTimeId  VALUES ( '${req.body.HistoryTime}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInHistoryVoltage', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeHistoryVoltage (BatteryId,NodeHistoryTimeId,VoltageHistory) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInHistoryIR', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeHistoryIR (BatteryId,NodeHistoryTimeId,HistoryIR) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/insertInHistoryTemp', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `INSERT INTO NodeHistoryTemp (BatteryId,NodeHistoryTimeId,BTHistory) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}')`;
+        var request = new sql.Request();
+
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
