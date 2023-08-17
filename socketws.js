@@ -24,7 +24,8 @@ io.on('connection', async function (socketws)
     });
 
     socketws.on('readRegister', async function (IPModbusServer, portModbusServer, bankDeviceId,
-        registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName) {
+        registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName)
+         {
 
         readModbus("127.0.0.1", 502, 17, 0, 35, "UPS-1-V", BankDisplayName, socketws)
         /*
