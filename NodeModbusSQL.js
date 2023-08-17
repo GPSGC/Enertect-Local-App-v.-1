@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    user: "nodeIndus2020",
-    password: "nodeIndus2020",
-    database: "NodeModbus", 
-    server: '114.79.133.104',
-    // user: "NodeModbus",
-    // password: "nodemodbus",
-    // database: "NodeModbus",
-    // server: 'localhost',
+    // user: "nodeIndus2020",
+    // password: "nodeIndus2020",
+    // database: "NodeModbus", 
+    // server: '114.79.133.104',
+    user: "NodeModbus",
+    password: "nodemodbus",
+    database: "NodeModbus",
+    server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -557,11 +557,11 @@ app.post('/ReturnLoadTestInfoIDByUPSID', jsonParser, function (req, res) {
     });
 
 });
-app.post('/UpdateStopDischargeByUPSID', jsonParser, function (req, res) {
+app.put('/UpdateStopDischargeByUPSID', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `UPDATE    LoadTestInformation SET EndDischarge = @EndDischarge WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) `;
+        var sqlquery = `UPDATE  NodeDischargeRecord SET EndDischarge = '${req.body.EndDischarge}' WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) `;
         var request = new sql.Request();
         request.query(sqlquery, function (err, result) {
             if (!err)
@@ -572,7 +572,37 @@ app.post('/UpdateStopDischargeByUPSID', jsonParser, function (req, res) {
     });
 
 });
+app.post('/CheckInfoByUPSIDAndENDDisharge', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT  COUNT(*) AS count FROM NodeDischargeRecord WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) `;
+        var request = new sql.Request();
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
 
+});
+app.post('/returnNodeDischargeRecordIdByUPSID', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT NodeDischargeRecordId FROM NodeDischargeRecord WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL)
+        ORDER BY NodeDischargeRecordId DESC`;
+        var request = new sql.Request();
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
 app.post('/insertInHistoryTime', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
@@ -593,7 +623,7 @@ app.post('/insertInHistoryVoltage', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeHistoryVoltage (BatteryId,NodeHistoryTimeId,VoltageHistory) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeHistoryVoltage (BatteryId,NodeHistoryTimeId,VoltageHistory,StringId) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}','${req.body.StringId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -609,7 +639,7 @@ app.post('/insertInHistoryIR', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeHistoryIR (BatteryId,NodeHistoryTimeId,HistoryIR) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeHistoryIR (BatteryId,NodeHistoryTimeId,HistoryIR,StringId) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}','${req.body.StringId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -625,7 +655,7 @@ app.post('/insertInHistoryTemp', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeHistoryTemp (BatteryId,NodeHistoryTimeId,BTHistory) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}')`;
+        var sqlquery = `INSERT INTO NodeHistoryTemp (BatteryId,NodeHistoryTimeId,BTHistory,StringId) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}','${req.body.StringId}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {

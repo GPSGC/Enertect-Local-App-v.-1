@@ -14,7 +14,8 @@ var EventLogger = require('node-windows').EventLogger;
    var NodeHistoryTimeId =  await getHistoryTimeId();
   
     for (var ups of dbR) {
-        createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  }
+        createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  
+      }
       
 })()
 
@@ -50,27 +51,36 @@ async function createUPSThread(upsid,NodeDashboardTimeId,NodeHistoryTimeId) {
   
 }
 
-async function createDischargeThread(UPSID)
+async function createDischargeThread(UPSID,dischargeStatus)
 {
-  console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
-  var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
-  console.log("lastTimeId : " + lastDischargeRecordTimeId );
+  if (dischargeStatus == true)
+   {
+      console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
+      var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
+      console.log("lastTimeId : " + lastDischargeRecordTimeId );
 
-  var dbS = await getStringDB(UPSID);
+      var dbS = await getStringDB(UPSID);
+      
+        var firstBatteryId=1;
    
-    var firstBatteryId=1;
-    for(var string of dbS)
-        {
-          console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-          await delayByMS(PoolingSleep);
+      for (var string of dbS)
+      {
+        console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+        await delayByMS(PoolingSleep);
+      
+        await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeVolt")
+        await delayByMS(PoolingSleep);
+       
+        await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeSVSC")
+        await delayByMS(PoolingSleep);
         
-          await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeVolt")
-          await delayByMS(PoolingSleep);
-         
-          await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeSVSC")
-          await delayByMS(PoolingSleep);
-          
-        }
+      }
+    }
+    // else if (dischargeStatus == false)
+    // {
+    //   updateDischargeStopRecording(UPSID);
+    // }
+   
  
 }
 //@modbus
@@ -97,14 +107,14 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                else if(Type == "IR")
                 {
                   IRSaveDBSQL(resp.response._body.valuesAsArray,firstBatteryId,StringID,NodeDashboardTimeId);
-                  HistoryIRSaveDBSQL(resp.response._body.valuesAsArray,firstBatteryId,StringID,NodeDashboardTimeId);
+                  HistoryIRSaveDBSQL(resp.response._body.valuesAsArray,firstBatteryId,StringID,NodeHistoryTimeId);
                 } 
                else if(Type == "Temp")
                {
                 TempSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeDashboardTimeId);
-                HistoryTempSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeDashboardTimeId);
+                HistoryTempSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeHistoryTimeId);
 
-              } 
+               } 
                else if(Type == "ATSVSC")
                {
                  strVoltage=resp.response._body.valuesAsArray[0]/10 ;
@@ -115,11 +125,11 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                  StrCurrentSaveDBSQL(StringID,strCurrent,NodeDashboardTimeId);
                   
                  //*********************************************Check Dicharge********************************* 
-                  console.log("Checking discharge : " + " UPSID : "+UPSID + "-discharge Status : "+ checkDischarge(strVoltage,strCurrent,registerNumberReadInteger));
-                  if (checkDischarge(strVoltage,strCurrent,registerNumberReadInteger))
-                  { 
-                    createDischargeThread(UPSID);
-                  }
+                  var disStatus =checkDischarge(strVoltage,strCurrent,registerNumberReadInteger)
+                  console.log("Checking discharge : " + " UPSID : "+UPSID + "-discharge Status : "+ disStatus);
+                   createDischargeThread(UPSID,disStatus);
+                  
+                   
                   
                }  
                else if(Type == "DischargeVolt")
@@ -408,20 +418,18 @@ function checkDischarge(strVoltage,strCurrent,NoOfBattery)
     let m_discharge =false;
     if (strVoltage != 0  && strCurrent != 0)  
     {
-        
-        // dischargeOn = (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);
-        dischargeOn =   (strVoltage >50) && (strCurrent>1);// (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
-        dischargeOff  = (strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
+       dischargeOn =   (strCurrent <= -5);// (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
+      // dischargeOff  =  (strCurrent >= -5);//(strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
         if (dischargeOn)
         {
             console.log("Discharge Started !!");
             m_discharge=true;
         }
-        if (dischargeOff && m_discharge)
-        {
-            console.log("Discharge Stop !!");
-            m_discharge=false;
-        }
+        // if (dischargeOff && m_discharge)
+        // {
+        //     console.log("Discharge Stop !!");
+        //     m_discharge=false;
+        // }
         
     }
      return m_discharge;
@@ -429,17 +437,39 @@ function checkDischarge(strVoltage,strCurrent,NoOfBattery)
 async function insertDichargeRecord(UPSID)
 {
       var lastDischargeRecordTimeId;
-      var myHeaders = new Headers();
+      var lastDischargerecordId;     
+        //********************************************************************* */
+        var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
-        var raw = JSON.stringify({
-            "UPSID": UPSID,"startdischarge": new Date()});
+        var raw = JSON.stringify({"UPSID": UPSID });
         var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
 
-        var resultDB = await  fetch("http://localhost:1212/insertIndichargerecord", requestOptions)
+        var resultDB = await  fetch("http://localhost:1212/CheckInfoByUPSIDAndENDDisharge", requestOptions)
         var tempJSON = await resultDB.json();
         var dbInfo = tempJSON.recordset;
-        var lastDischargerecordId = dbInfo[0].NodeDischargeRecordId;
-        
+        count = dbInfo[0].count;
+        if (count == 0)
+        {
+           
+          var raw1 = JSON.stringify({"UPSID": UPSID,"startdischarge": new Date()});
+          var requestOptions1 = {method: 'POST',headers: myHeaders,body: raw1,redirect: 'follow'};
+
+          var resultDB1 = await  fetch("http://localhost:1212/insertIndichargerecord", requestOptions1)
+          var tempJSON1 = await resultDB1.json();
+          var dbInfo1 = tempJSON1.recordset;
+          lastDischargerecordId = dbInfo1[0].NodeDischargeRecordId;
+        }
+        else
+        {
+          
+          var raw2 = JSON.stringify({"UPSID": UPSID});
+          var requestOptions2 = {method: 'POST',headers: myHeaders,body: raw2,redirect: 'follow'};
+
+           var resultDB2 = await  fetch("http://localhost:1212/returnNodeDischargeRecordIdByUPSID", requestOptions2)
+          var tempJSON2 = await resultDB2.json();
+          var dbInfo2 = tempJSON2.recordset;
+          lastDischargerecordId = dbInfo2[0].NodeDischargeRecordId;
+        }
      //*************************************************************************** */
         var rawTime = JSON.stringify({
           "NodeDischargeRecordId": lastDischargerecordId,
@@ -543,7 +573,6 @@ function insertInDischargeStrCurrent(value, TimeId,stringId)
           .catch(error => console.log('error', error));
        
 }
-
 async function getHistoryTimeId()
  {
   var myHeaders = new Headers();
@@ -558,4 +587,20 @@ async function getHistoryTimeId()
    var StringInfo = tempJSON.recordset;
    NodeHistoryTimeId= StringInfo[0].NodeHistoryTimeId;
    return NodeHistoryTimeId;
+}
+ async function updateDischargeStopRecording(UPSID)
+ {
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  var raw = JSON.stringify({
+  "EndDischarge": new Date() ,
+  "UPSID" : UPSID
+  });
+  var requestOptions = {method: 'PUT',headers: myHeaders,body: raw,redirect: 'follow'};
+   fetch("http://localhost:1212/UpdateStopDischargeByUPSID", requestOptions)
+    .then(response => response.text())
+           .then(result => console.log(result))
+           .catch(error => console.log('error', error));
+    
+    
 }
