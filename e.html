@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Indus - Modbus</title>
+
+    </head>
+
+    <body style="background-color: black; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div id="mainDiv" style="margin-left: 30px;">
+
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            //@socket
+
+            var upsJSON = [
+
+                {
+                    "_id": "UPS-1",
+                    "Type": "UPS",
+                    "DisplayName": "UPS-1",
+                    "IP": "127.0.0.1    ",
+                    "Port": 502,
+                    "NextRoundSleep": 1000,
+                    "PoolingSleep": 1000,
+                    "UPSBanks": [
+                        {
+                            "DisplayId": "Bank-1",
+                            "BankDisplayName": "Bank-1",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-2",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-3",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-4",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-5",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-6",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-7",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-8",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-9",
+                            "BankDisplayName": "Bank-9",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-10",
+                            "BankDisplayName": "Bank-10",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-1",
+                            "BankDisplayName": "Bank-11",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-12",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-13",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-114",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-15",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-16",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-17",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-2",
+                            "BankDisplayName": "Bank-118",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-9",
+                            "BankDisplayName": "Bank-113",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        },
+                        {
+                            "DisplayId": "Bank-10",
+                            "BankDisplayName": "Bank-114",
+                            "Type": "UPS-Bank",
+                            "DeviceNumber": 17,
+                            "Blocks": 35,
+                            "ReadCount": 0
+                        }
+
+                    ]
+
+                }
+            ]
+
+            var socket = io();
+            var upsList = [];
+            //@main
+            (async () => {
+
+                for (ups of upsJSON) {
+
+                    for (bank of ups.UPSBanks) {
+
+                        mainDiv.innerHTML += `<p><h1>${bank.BankDisplayName}</h1></p>
+                    
+                    <div id="${bank.BankDisplayName}" style="min-height:50px;" data-count=0>Here</div>
+                    <p><div id="${bank.BankDisplayName}count">0</div></p>
+                              `
+
+                        runrun("UPS-1", bank.BankDisplayName);
+                        await delayByMS(500);
+
+                    }
+                }
+
+            })()
+
+            async function runrun(UPSName, BankDisplayName) {
+                setInterval(async function () {
+                    socket.emit("readRegister", "127.0.0.1", 502, 17, 0, 35, "UPS-1-V", BankDisplayName);
+                }, 1000);
+            }
+
+            socket.on("dataIncoming", async function (newData, BankDisplayName) {
+
+                if (document.getElementById(BankDisplayName)) {
+                    var dataText = "";
+
+                    for (data of newData) {
+                        dataText += `  ${data}`;
+                    }
+
+                    document.getElementById(BankDisplayName).innerHTML = `<p>${dataText}</p><p>${new Date().toISOString()}</p>`;
+                    c = document.getElementById(`${BankDisplayName}count`).innerText;
+
+                    document.getElementById(`${BankDisplayName}count`).innerText = parseInt(c) + 1;
+
+                }
+            });
+            async function delayByMS(time) {
+                return new Promise(resolve => setTimeout(resolve, time));
+            }
+        </script>
+
+    </body>
+
+</html>
