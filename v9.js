@@ -17,7 +17,7 @@ var EventLogger = require('node-windows').EventLogger;
         createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  
       }
     }
-      setInterval(execute, 5000);
+       setInterval(execute, 30000);
 })()
 
 var PoolingSleep = 1500;
