@@ -3,7 +3,7 @@ const modbus = require('jsmodbus')
 const net = require('net')
 const moduleSql= require('./NodeModbusSQL.js');
 var EventLogger = require('node-windows').EventLogger;
- var log = new EventLogger('NodeModbusApp');       
+ var log = new EventLogger('EnertectNodeModbusApp');       
 //@main
 (async () => {
   async function execute(){
@@ -166,7 +166,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
             }).catch(function (err) {
                 console.log(err);
                 socket.end()
-                log.error(err)
+                log.error(err);
                 return false;
             })
     })
@@ -301,6 +301,7 @@ async function  StrVoltageSaveDBSQL(BatteryStringID,value,NodeDashboardTimeId)
 
   } catch (err) {
     console.log(err);
+    log.error(err);
   } 
    
 }
@@ -320,6 +321,7 @@ async function  ATSaveDBSQL(BatteryStringID,value,NodeDashboardTimeId)
 
  } catch (err) {
    console.log(err);
+   log.error(err);
  } 
 }
 async function  StrCurrentSaveDBSQL(BatteryStringID,value,NodeDashboardTimeId)
@@ -338,6 +340,7 @@ async function  StrCurrentSaveDBSQL(BatteryStringID,value,NodeDashboardTimeId)
 
  } catch (err) {
    console.log(err);
+   log.error(err);
  } 
 }
 async function getDB() {
@@ -350,6 +353,7 @@ async function getDB() {
 
   } catch (err) {
     console.log(err);
+    
   } 
 
 }
@@ -434,6 +438,8 @@ function BinaryToDecimal(binary) {
 }
 function checkDischarge(strVoltage,strCurrent,NoOfBattery)
 { 
+  try
+  {
     let m_discharge =false;
     if (strVoltage != 0  && strCurrent != 0)  
     {
@@ -452,6 +458,12 @@ function checkDischarge(strVoltage,strCurrent,NoOfBattery)
         
     }
      return m_discharge;
+  }
+  catch (err) {
+    console.log(err);
+    log.error(err);
+  } 
+   
 }
 async function insertDichargeRecord(UPSID)
 {
