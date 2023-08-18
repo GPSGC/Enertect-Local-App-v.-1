@@ -432,7 +432,8 @@ app.delete('/deleteDashboardData', jsonParser, function (req, res) {
         Delete from NodeDashboardIR where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
         Delete from NodeDashboardTemp where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
         Delete from NodeDashBoardAT where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
-        Delete from NodeStringVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeStringVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime) 
+        Delete from NodeStringCurrent where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime) 
         Delete from NodeDashboardVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
         Delete from NodeDashboardTime where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)`;
         var request = new sql.Request();
