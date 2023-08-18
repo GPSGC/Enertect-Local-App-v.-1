@@ -16,11 +16,12 @@ var EventLogger = require('node-windows').EventLogger;
     for (var ups of dbR) {
         createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  
       }
-      
+  
 })()
 
 var PoolingSleep = 1500;
 var NextRoundSleep=1000;
+var anyBatteryInDischarge,dischargeFlag;
 //@ups
 async function createUPSThread(upsid,NodeDashboardTimeId,NodeHistoryTimeId) {
 
@@ -51,9 +52,9 @@ async function createUPSThread(upsid,NodeDashboardTimeId,NodeHistoryTimeId) {
   
 }
 
-async function createDischargeThread(UPSID,dischargeStatus)
+async function createDischargeThread(UPSID,dischargeStatus,anyBatteryInDischarge,dischargeFlag)
 {
-  if (dischargeStatus == true)
+  if (anyBatteryInDischarge)
    {
       console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
       var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
@@ -76,10 +77,11 @@ async function createDischargeThread(UPSID,dischargeStatus)
         
       }
     }
-    // else if (dischargeStatus == false)
-    // {
-    //   updateDischargeStopRecording(UPSID);
-    // }
+    else if (dischargeFlag)
+    {
+      dischargeFlag=false;
+      updateDischargeStopRecording(UPSID);
+    }
    
  
 }
@@ -101,19 +103,26 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                if (Type == "Volt")
                {
                  voltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeDashboardTimeId);
+                if (NodeHistoryTimeId !=0)
+                {
                  HistoryvoltageSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeHistoryTimeId);
-              
+                }
                 }
                else if(Type == "IR")
                 {
                   IRSaveDBSQL(resp.response._body.valuesAsArray,firstBatteryId,StringID,NodeDashboardTimeId);
+                  if (NodeHistoryTimeId !=0)
+                {
                   HistoryIRSaveDBSQL(resp.response._body.valuesAsArray,firstBatteryId,StringID,NodeHistoryTimeId);
+                }
                 } 
                else if(Type == "Temp")
                {
                 TempSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeDashboardTimeId);
+                if (NodeHistoryTimeId !=0)
+                {
                 HistoryTempSaveDBSQL(resp.response._body.valuesAsArray, firstBatteryId,StringID,NodeHistoryTimeId);
-
+                }
                } 
                else if(Type == "ATSVSC")
                {
@@ -125,9 +134,16 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                  StrCurrentSaveDBSQL(StringID,strCurrent,NodeDashboardTimeId);
                   
                  //*********************************************Check Dicharge********************************* 
+                  anyBatteryInDischarge = false;
                   var disStatus =checkDischarge(strVoltage,strCurrent,registerNumberReadInteger)
                   console.log("Checking discharge : " + " UPSID : "+UPSID + "-discharge Status : "+ disStatus);
-                   createDischargeThread(UPSID,disStatus);
+                   
+                   if (disStatus == true)
+                   {
+                    anyBatteryInDischarge= true;
+                    dischargeFlag=true
+                   }
+                   createDischargeThread(UPSID,disStatus,anyBatteryInDischarge,dischargeFlag);
                   
                    
                   
@@ -419,17 +435,17 @@ function checkDischarge(strVoltage,strCurrent,NoOfBattery)
     if (strVoltage != 0  && strCurrent != 0)  
     {
        dischargeOn =   (strCurrent <= -5);// (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
-      // dischargeOff  =  (strCurrent >= -5);//(strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
+       dischargeOff  =  (strCurrent >= -5);//(strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
         if (dischargeOn)
         {
             console.log("Discharge Started !!");
             m_discharge=true;
         }
-        // if (dischargeOff && m_discharge)
-        // {
-        //     console.log("Discharge Stop !!");
-        //     m_discharge=false;
-        // }
+        if (dischargeOff && m_discharge)
+        {
+            console.log("Discharge Stop !!");
+            m_discharge=false;
+        }
         
     }
      return m_discharge;
@@ -575,17 +591,34 @@ function insertInDischargeStrCurrent(value, TimeId,stringId)
 }
 async function getHistoryTimeId()
  {
+  var NodeHistoryTimeId=0;
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   var raw = JSON.stringify({
-  "HistoryTime": new Date() 
+  "HistoryTime": new Date()
   });
   var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
-  var resultDB = await fetch("http://localhost:1212/insertInHistoryTime", requestOptions)
+  var resultDB = await fetch("http://localhost:1212/returnHistoryCountByDate", requestOptions)
     // console.log(resultDB);
    var tempJSON = await resultDB.json();
    var StringInfo = tempJSON.recordset;
-   NodeHistoryTimeId= StringInfo[0].NodeHistoryTimeId;
+   count= StringInfo[0].count;
+    
+   if (count == 0)
+  { 
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      var raw = JSON.stringify({
+      "HistoryTime": new Date() 
+      });
+      var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
+      var resultDB = await fetch("http://localhost:1212/insertInHistoryTime", requestOptions)
+        // console.log(resultDB);
+      var tempJSON = await resultDB.json();
+      var StringInfo = tempJSON.recordset;
+      NodeHistoryTimeId= StringInfo[0].NodeHistoryTimeId;
+  }
+
    return NodeHistoryTimeId;
 }
  async function updateDischargeStopRecording(UPSID)
@@ -600,7 +633,7 @@ async function getHistoryTimeId()
    fetch("http://localhost:1212/UpdateStopDischargeByUPSID", requestOptions)
     .then(response => response.text())
            .then(result => console.log(result))
-           .catch(error => console.log('error', error));
-    
+           .catch(error => console.log('error', error));   
     
 }
+ 

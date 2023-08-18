@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    // user: "nodeIndus2020",
-    // password: "nodeIndus2020",
-    // database: "NodeModbus", 
-    // server: '114.79.133.104',
-    user: "NodeModbus",
-    password: "nodemodbus",
-    database: "NodeModbus",
-    server: 'localhost',
+    user: "nodeIndus2020",
+    password: "nodeIndus2020",
+    database: "NodeModbus", 
+    server: '114.79.133.104',
+    // user: "NodeModbus",
+    // password: "nodemodbus",
+    // database: "NodeModbus",
+    // server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -428,13 +428,13 @@ app.delete('/deleteDashboardData', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = ` Delete from NodeDashboardVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
-        Delete from NodeDashboardIR where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
-        Delete from NodeDashboardTemp where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
-        Delete from NodeDashBoardAT where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
-        Delete from NodeStringVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
-        Delete from NodeDashboardVoltage where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)  
-        Delete from NodeDashboardTime where NodeDashboardTimeId < (select max(NodeDashboardTimeId) from NodeDashboardTime)`;
+        var sqlquery = ` Delete from NodeDashboardVoltage where NodeDashboardTimeId <= (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardIR where NodeDashboardTimeId <= (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardTemp where NodeDashboardTimeId <= (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashBoardAT where NodeDashboardTimeId <= (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeStringVoltage where NodeDashboardTimeId <= (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardVoltage where NodeDashboardTimeId <= (select max(NodeDashboardTimeId) from NodeDashboardTime)  
+        Delete from NodeDashboardTime where NodeDashboardTimeId <= (select max(NodeDashboardTimeId) from NodeDashboardTime)`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -658,6 +658,21 @@ app.post('/insertInHistoryTemp', jsonParser, function (req, res) {
         var sqlquery = `INSERT INTO NodeHistoryTemp (BatteryId,NodeHistoryTimeId,BTHistory,StringId) VALUES ('${req.body.BatteryId}','${req.body.NodeHistoryTimeId}','${req.body.Value}','${req.body.StringId}')`;
         var request = new sql.Request();
 
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
+});
+app.post('/returnHistoryCountByDate', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT  COUNT(*) AS count FROM NodeHistoryTime where (CAST(HistoryTime AS date)  = '${req.body.HistoryTime}') `;
+        var request = new sql.Request();
         request.query(sqlquery, function (err, result) {
             if (!err)
                 res.send(result);
