@@ -25,13 +25,14 @@ var NextRoundSleep=1000;
 var anyBatteryInDischarge,dischargeFlag;
 //@ups
 async function createUPSThread(upsid,NodeDashboardTimeId,NodeHistoryTimeId) {
-
+  log.info('NodeModbusApp Started');
   var dbS = await getStringDB(upsid);
  
   var firstBatteryId = 1;
    
         for(var string of dbS)
         {
+          log.info('NodeModbusApp Thread Created'+  "Bank Name is " + string.SlaveID );
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             await delayByMS(PoolingSleep);
          
@@ -165,6 +166,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
             }).catch(function (err) {
                 console.log(err);
                 socket.end()
+                log.error(err)
                 return false;
             })
     })
