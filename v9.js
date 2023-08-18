@@ -6,7 +6,7 @@ var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('NodeModbusApp');       
 //@main
 (async () => {
-  
+  async function execute(){
    var dbR = await getDB(); 
   
    deleteDashbaordData();  // delete previous dashboard records
@@ -16,7 +16,8 @@ var EventLogger = require('node-windows').EventLogger;
     for (var ups of dbR) {
         createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  
       }
-  
+    }
+      setInterval(execute, 5000);
 })()
 
 var PoolingSleep = 1500;
