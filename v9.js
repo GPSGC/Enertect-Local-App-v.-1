@@ -32,7 +32,7 @@ async function createUPSThread(upsid,NodeDashboardTimeId,NodeHistoryTimeId) {
    
         for(var string of dbS)
         {
-          log.info('NodeModbusApp Thread Created'+  "Bank Name is " + string.SlaveID );
+         // log.info('NodeModbusApp Thread Created'+  "Bank Name is " + string.SlaveID );
             console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
             await delayByMS(PoolingSleep);
          
