@@ -166,7 +166,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
              {
                 var objError = {
                     _id: StringID,
-                    DateISO: moment(new Date()).format("YYYY-MM-DD"),
+                    DateISO:new Date(),
                     Errorname: err
                     }
                
