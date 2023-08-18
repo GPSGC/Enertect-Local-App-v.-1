@@ -1,6 +1,7 @@
 const { resolvePtr } = require('dns');
 const modbus = require('jsmodbus')
 const net = require('net')
+const fs = require("fs");
 const moduleSql= require('./NodeModbusSQL.js');
 var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('NodeModbusApp');       
@@ -162,13 +163,20 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                 insertInDischargeStrCurrent(disstrCurrent, NodeDashboardTimeId,StringID);
                }
 
-            }).catch(function (err) {
+            }).catch(function (err)  {
+                var objError = {
+                    _id: StringID,
+                    DateISO: moment(new Date()).format("YYYY-MM-DD"),
+                    Errorname: err
+                    }
+               
+                containerError.push(objError);
                 console.log(err);
                 socket.end()
                 return false;
             })
     })
-
+ fs.writeFileSync("error1.json", JSON.stringify(containerError));
 }
 
 async function delayByMS(time) {
