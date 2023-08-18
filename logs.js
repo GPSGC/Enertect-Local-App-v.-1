@@ -2,6 +2,8 @@ const { resolvePtr } = require('dns');
 const modbus = require('jsmodbus')
 const net = require('net')
 const moduleSql= require('./NodeModbusSQL.js');
+const fs = require("fs");
+var containerError = [];
 var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('NodeModbusApp');       
 //@main
