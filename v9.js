@@ -59,6 +59,7 @@ async function createDischargeThread(UPSID,dischargeStatus,anyBatteryInDischarge
   if (anyBatteryInDischarge)
    {
       console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
+      log.info("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent );
       var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
       console.log("lastTimeId : " + lastDischargeRecordTimeId );
 
@@ -83,6 +84,7 @@ async function createDischargeThread(UPSID,dischargeStatus,anyBatteryInDischarge
     {
       dischargeFlag=false;
       updateDischargeStopRecording(UPSID);
+      log.info("Discharge Stopped for UPS :" + UPSID );
     }
    
  
