@@ -191,7 +191,9 @@ async function voltageSaveDBSQL(value,firstBatteryId,StringId,NodeDashboardTimeI
 
      fetch("http://localhost:1212/insertInDashboardVoltage", requestOptions).then(response => response.text())
        .then(result => console.log(result))
-       .catch(error => console.log('error', error));
+       .catch(error => 
+        console.log('error', error)
+        );
      
        
   }
