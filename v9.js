@@ -146,9 +146,7 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                     dischargeFlag=true
                    }
                    createDischargeThread(UPSID,disStatus,anyBatteryInDischarge,dischargeFlag);
-                  
-                   
-                  
+                                    
                }  
                else if(Type == "DischargeVolt")
                {
