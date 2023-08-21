@@ -79,10 +79,13 @@ async function createDischargeThread(UPSID,dischargeStatus,anyBatteryInDischarge
         
       }
     }
-    else if (dischargeFlag)
-    {
-      dischargeFlag=false;
-      updateDischargeStopRecording(UPSID);
+    else 
+    { 
+      if (dischargeFlag)
+      {
+        dischargeFlag=false;
+        updateDischargeStopRecording(UPSID);
+     }
     }
    
  
