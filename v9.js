@@ -15,7 +15,7 @@ var EventLogger = require('node-windows').EventLogger;
   
     for (var ups of dbR) {
         await createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId); 
-        await createDischargeThread(ups.UPSID);
+       // await createDischargeThread(ups.UPSID);
       }
     }
        setInterval(execute, 30000);
