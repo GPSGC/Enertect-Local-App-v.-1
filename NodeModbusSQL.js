@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    // user: "nodeIndus2020",
-    // password: "nodeIndus2020",
-    // database: "NodeModbus", 
-    // server: '114.79.133.104',
-    user: "NodeModbus",
-    password: "nodemodbus",
-    database: "NodeModbus",
-    server: 'localhost',
+    user: "nodeIndus2020",
+    password: "nodeIndus2020",
+    database: "NodeModbus", 
+    server: '114.79.133.104',
+    // user: "NodeModbus",
+    // password: "nodemodbus",
+    // database: "NodeModbus",
+    // server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -682,4 +682,22 @@ app.post('/returnHistoryCountByDate', jsonParser, function (req, res) {
         });
     });
 
+});
+app.get('/getStrCurrentRecordsForMaxDashboardTimeID',jsonParser, function (req, res) {
+     sql.connect(config, function (err) {
+
+        if (err) console.log(err);
+    var request = new sql.Request();
+    request.query(`SELECT NodeStringCurrent.NodeStringCurrentId, NodeStringCurrent.BatteryStringID, NodeStringCurrent.StringCurrent, NodeStringCurrent.NodeDashboardTimeId, NodeStringVoltage.StringVoltage, BatteryStringInfo.NoOfBattery, 
+    NodeStringVoltage.NodeDashboardTimeId AS Expr1
+FROM     NodeStringCurrent INNER JOIN
+    BatteryStringInfo ON NodeStringCurrent.BatteryStringID = BatteryStringInfo.BatteryStringID INNER JOIN
+    NodeStringVoltage ON BatteryStringInfo.BatteryStringID = NodeStringVoltage.BatteryStringID
+WHERE  (NodeStringCurrent.NodeDashboardTimeId =
+        (SELECT MAX(NodeDashboardTimeId) AS Expr1
+         FROM      NodeStringCurrent AS NodeStringCurrent_1))`, function (err, recordset) {
+        if (err) console.log(err)
+         res.send(recordset); 
+        });
+    });
 });

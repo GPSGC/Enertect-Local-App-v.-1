@@ -14,7 +14,8 @@ var EventLogger = require('node-windows').EventLogger;
    var NodeHistoryTimeId =  await getHistoryTimeId();
   
     for (var ups of dbR) {
-        createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  
+        await createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId); 
+        await createDischargeThread(ups.UPSID);
       }
     }
        setInterval(execute, 30000);
@@ -54,38 +55,86 @@ async function createUPSThread(upsid,NodeDashboardTimeId,NodeHistoryTimeId) {
   
 }
 
-async function createDischargeThread(UPSID,dischargeStatus,anyBatteryInDischarge,dischargeFlag)
+async function createDischargeThread(UPSID)
 {
-  if (anyBatteryInDischarge)
-   {
-      console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
-      log.info("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent );
-      var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
-      console.log("lastTimeId : " + lastDischargeRecordTimeId );
-
-      var dbS = await getStringDB(UPSID);
-      
-        var firstBatteryId=1;
-   
-      for (var string of dbS)
+  try {
+    anyBatteryInDischarge = false;
+    var resultDB = await fetch("http://localhost:1212/getStrCurrentRecordsForMaxDashboardTimeID", { method: 'GET', redirect: 'follow' });
+    var tempJSON = await resultDB.json();
+    var strCurrentData = tempJSON.recordset;
+    for (var string of strCurrentData)
       {
-        console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
-        await delayByMS(PoolingSleep);
-      
-        await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeVolt")
-        await delayByMS(PoolingSleep);
+        var strCurrent= string.StringCurrent;
+        var StringVoltage= string.StringVoltage;
+        var NoOfBattery= string.NoOfBattery;
+        var disStatus = checkDischarge(StringVoltage,strCurrent,NoOfBattery);
+        if (disStatus == true)
+        {
+          anyBatteryInDischarge = true;
+          dischargeFlag = true;
+
+          console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
+          log.info("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent );
+          var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
+          console.log("lastTimeId : " + lastDischargeRecordTimeId );
+
+            var firstBatteryId=1;
+          
+            console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+            await delayByMS(PoolingSleep);
+          
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeVolt")
+            await delayByMS(PoolingSleep);
+          
+            await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeSVSC")
+            await delayByMS(PoolingSleep);
        
-        await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeSVSC")
-        await delayByMS(PoolingSleep);
+        }
+        else
+        {
+          if (dischargeFlag == true)
+          {
+            dischargeFlag = false;
+            updateDischargeStopRecording(UPSID);
+            log.info("Discharge Stopped for UPS :" + UPSID );
+         }
+        }
+     }
+   
+    } catch (err) {
+      console.log(err);
+    
+  } 
+  // if (anyBatteryInDischarge)
+  //  {
+  //     console.log("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent  );
+  //     log.info("Start Discharge-SV : " +strVoltage + "-SC : " + strCurrent );
+  //     var lastDischargeRecordTimeId =  await insertDichargeRecord(UPSID);
+  //     console.log("lastTimeId : " + lastDischargeRecordTimeId );
+
+  //     var dbS = await getStringDB(UPSID);
+      
+  //       var firstBatteryId=1;
+   
+  //     for (var string of dbS)
+  //     {
+  //       console.log("I am sleeping for " + PoolingSleep + "Bank Name is " + string.SlaveID)
+  //       await delayByMS(PoolingSleep);
+      
+  //       await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 3, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeVolt")
+  //       await delayByMS(PoolingSleep);
+       
+  //       await readModbus(string.IPAddress,  string.COMPort,string.SlaveID, 1816, string.NoOfBattery, "",firstBatteryId,string.BatteryStringID,lastDischargeRecordTimeId,string.UPSID,"DischargeSVSC")
+  //       await delayByMS(PoolingSleep);
         
-      }
-    }
-    else if (dischargeFlag)
-    {
-      dischargeFlag=false;
-      updateDischargeStopRecording(UPSID);
-      log.info("Discharge Stopped for UPS :" + UPSID );
-    }
+  //     }
+  //   }
+  //   else if (dischargeFlag)
+  //   {
+  //     dischargeFlag=false;
+  //     updateDischargeStopRecording(UPSID);
+  //     log.info("Discharge Stopped for UPS :" + UPSID );
+  //   }
    
  
 }
@@ -137,17 +186,17 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
                  ATSaveDBSQL(StringID,dashboardAt,NodeDashboardTimeId);
                  StrCurrentSaveDBSQL(StringID,strCurrent,NodeDashboardTimeId);
                   
-                 //*********************************************Check Dicharge********************************* 
-                  anyBatteryInDischarge = false;
-                  var disStatus =checkDischarge(strVoltage,strCurrent,registerNumberReadInteger)
-                  console.log("Checking discharge : " + " UPSID : "+UPSID + "-discharge Status : "+ disStatus);
+                //  //*********************************************Check Dicharge********************************* 
+                //   anyBatteryInDischarge = false;
+                //   var disStatus =checkDischarge(strVoltage,strCurrent,registerNumberReadInteger)
+                //   console.log("Checking discharge : " + " UPSID : "+UPSID + "-discharge Status : "+ disStatus);
                    
-                   if (disStatus == true)
-                   {
-                    anyBatteryInDischarge= true;
-                    dischargeFlag=true
-                   }
-                   createDischargeThread(UPSID,disStatus,anyBatteryInDischarge,dischargeFlag);
+                //    if (disStatus == true)
+                //    {
+                //     anyBatteryInDischarge= true;
+                //     dischargeFlag=true
+                //    }
+                //    createDischargeThread(UPSID,disStatus,anyBatteryInDischarge,dischargeFlag);
                                     
                }  
                else if(Type == "DischargeVolt")
@@ -438,15 +487,15 @@ function BinaryToDecimal(binary) {
      }
      return decimal;
 }
-function checkDischarge(strVoltage,strCurrent,NoOfBattery)
+function checkDischarge( StringVoltage,strCurrent,NoOfBattery )
 { 
   try
   {
     let m_discharge =false;
-    if (strVoltage != 0  && strCurrent != 0)  
+   if (  strCurrent != 0)  //  if (strVoltage != 0  && strCurrent != 0)  
     {
-       dischargeOn =   (strCurrent <= -5);// (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
-       dischargeOff  =  (strCurrent >= -5);//(strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
+       dischargeOn =  (strVoltage <= (NoOfBattery * 13)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
+       dischargeOff  =  (strVoltage >= (NoOfBattery * 13)) && (strCurrent >= -5);
         if (dischargeOn)
         {
             console.log("Discharge Started !!");
