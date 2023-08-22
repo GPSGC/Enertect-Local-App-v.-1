@@ -25,7 +25,7 @@ const localDate = new Date(new Date).toLocaleString();
         createDischargeThreadNew(ups1.UPSID);
       }
     }
-       setInterval(execute, 30000);
+       setInterval(execute, 60000);
        console.log("async load : " + new Date());
 })()
 
