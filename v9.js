@@ -2,23 +2,31 @@ const { resolvePtr } = require('dns');
 const modbus = require('jsmodbus')
 const net = require('net')
 const moduleSql= require('./NodeModbusSQL.js');
+const { DateTime } = require('mssql');
 var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('EnertectNodeModbusApp');       
 //@main
+const localDate = new Date(new Date).toLocaleString();
 (async () => {
-  async function execute(){
+  async function execute()
+  {
    var dbR = await getDB(); 
   
    deleteDashbaordData();  // delete previous dashboard records
    var NodeDashboardTimeId =  await getDashbaordTimeId();   //get latest inserted DashbaordTimeId
    var NodeHistoryTimeId =  await getHistoryTimeId();
   
-    for (var ups of dbR) {
-        await createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId);  
-        createDischargeThreadNew(ups.UPSID);
+    for (var ups of dbR) 
+      {
+          createUPSThread(ups.UPSID,NodeDashboardTimeId,NodeHistoryTimeId); 
+      }
+      for (var ups1 of dbR) 
+      {
+        createDischargeThreadNew(ups1.UPSID);
       }
     }
        setInterval(execute, 30000);
+       console.log("async load : " + new Date());
 })()
 
 var PoolingSleep = 1500;
@@ -445,11 +453,13 @@ async function getStringDB(upsid)
 }
 async function getDashbaordTimeId()
  {
+ 
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   var raw = JSON.stringify({
-  "DashboardTime": new Date().toLocaleDateString() 
+  "DashboardTime":  new Date()
   });
+  console.log("DashboardTime : " + new Date());
   var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
   var resultDB = await fetch("http://localhost:1212/insertInDashboardTime", requestOptions)
     // console.log(resultDB);
