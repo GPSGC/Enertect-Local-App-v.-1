@@ -446,8 +446,8 @@ function checkDischarge(strVoltage,strCurrent,NoOfBattery)
     let m_discharge =false;
     if (strVoltage != 0  && strCurrent != 0)  
     {
-       dischargeOn =   (strCurrent <= -5);// (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
-       dischargeOff  =  (strCurrent >= -5);//(strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
+       dischargeOn =  (strVoltage <= (NoOfBattery * 12.72)) && (strCurrent <= -5);   //(strVoltage >50) && (strCurrent>1);
+       dischargeOff  =  (strVoltage >= (NoOfBattery * 12.72)) && (strCurrent >= -5);
         if (dischargeOn)
         {
             console.log("Discharge Started !!");
