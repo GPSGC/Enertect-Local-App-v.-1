@@ -26,7 +26,7 @@ const localDate = new Date(new Date).toLocaleString();
       }
     }
        setInterval(execute, 60000);
-       console.log("async load : " + new Date());
+      // console.log("async load : " + new Date());
 })()
 
 var PoolingSleep = 1500;
