@@ -448,7 +448,7 @@ async function getDashbaordTimeId()
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   var raw = JSON.stringify({
-  "DashboardTime": new Date() 
+  "DashboardTime": new Date().toLocaleDateString() 
   });
   var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
   var resultDB = await fetch("http://localhost:1212/insertInDashboardTime", requestOptions)
