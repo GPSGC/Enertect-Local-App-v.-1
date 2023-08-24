@@ -101,7 +101,9 @@ async function createDischargeThread(UPSID,dischargeStatus,anyBatteryInDischarge
 }
 async function createDischargeThreadNew(UPSID)
 {
-  try {
+ 
+  try 
+  {
     anyBatteryInDischarge = false;
     var resultDB = await fetch("http://localhost:1212/getStrCurrentRecordsForMaxDashboardTimeID", { method: 'GET', redirect: 'follow' });
     var tempJSON = await resultDB.json();
@@ -151,6 +153,7 @@ async function createDischargeThreadNew(UPSID)
    
     } catch (err) {
       console.log(err);
+      log.info(err)
     
   } 
  

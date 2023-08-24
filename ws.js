@@ -16,18 +16,16 @@ app.use(express.static('public'))
 
 var intervalID = "";
 //@soc
-io.on('connection', async function (socketws)
- {
+io.on('connection', async function (socketws) {
     console.log('a user connected');
     socketws.on('chat message', async function (msg) {
         console.log('message: ' + msg);
     });
 
     socketws.on('readRegister', async function (IPModbusServer, portModbusServer, bankDeviceId,
-        registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName)
-         {
+        registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName) {
 
-        readModbus("127.0.0.1", 502, 17, 0, 35, "UPS-1-V", BankDisplayName, socketws)
+        readModbus(IPModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName, socketws)
         /*
     intervalID = setInterval(async function () {
         readModbus("127.0.0.1", 502, 17, 0, 35, "UPS-1", "Bank-1", socketws)
@@ -82,7 +80,7 @@ async function voltageSaveDB(voltageArray, DisplayName, BankDisplayName) {
         "DisplayNameBank": BankDisplayName,
         "VoltageValues": voltageArray
     }
-    console.log(finalJSON2Upload);
+    
     try {
         modbusRemote.post(finalJSON2Upload);
     } catch (err) { console.log(err); }
