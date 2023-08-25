@@ -5,8 +5,14 @@ const moduleSql= require('./NodeModbusSQL.js');
 const { DateTime } = require('mssql');
 var EventLogger = require('node-windows').EventLogger;
  var log = new EventLogger('EnertectNodeModbusApp');       
+ //********Local Date******** */
+ const date = new Date();
+ const offset = date.getTimezoneOffset() == 0 ? 0 : -1 * date.getTimezoneOffset();
+ let normalized = new Date(date.getTime() + (offset) * 60000);
+ let indiaTime = new Date(normalized.toLocaleString("en-US", {timeZone: "Asia/Calcutta"}));
+  
+ //************************* */
 //@main
-const localDate = new Date(new Date).toLocaleString();
 (async () => {
   async function execute()
   {
@@ -26,7 +32,7 @@ const localDate = new Date(new Date).toLocaleString();
       }
     }
        setInterval(execute, 60000);
-      // console.log("async load : " + new Date());
+      // console.log("async load : " + indiaTime);
 })()
 
 var PoolingSleep = 1500;
@@ -460,9 +466,9 @@ async function getDashbaordTimeId()
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   var raw = JSON.stringify({
-  "DashboardTime":  new Date()
+  "DashboardTime":  indiaTime
   });
-  console.log("DashboardTime : " + new Date());
+  console.log("DashboardTime : " + indiaTime);
   var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
   var resultDB = await fetch("http://localhost:1212/insertInDashboardTime", requestOptions)
     // console.log(resultDB);
@@ -557,7 +563,7 @@ async function insertDichargeRecord(UPSID)
         if (count == 0)
         {
            
-          var raw1 = JSON.stringify({"UPSID": UPSID,"startdischarge": new Date()});
+          var raw1 = JSON.stringify({"UPSID": UPSID,"startdischarge": indiaTime});
           var requestOptions1 = {method: 'POST',headers: myHeaders,body: raw1,redirect: 'follow'};
 
           var resultDB1 = await  fetch("http://localhost:1212/insertIndichargerecord", requestOptions1)
@@ -579,7 +585,7 @@ async function insertDichargeRecord(UPSID)
      //*************************************************************************** */
         var rawTime = JSON.stringify({
           "NodeDischargeRecordId": lastDischargerecordId,
-          "DischargeRecordTime": new Date()
+          "DischargeRecordTime": indiaTime
         });
 
         var requestOptions = {method: 'POST',headers: myHeaders,body: rawTime,redirect: 'follow'};
@@ -685,7 +691,7 @@ async function getHistoryTimeId()
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   var raw = JSON.stringify({
-  "HistoryTime": new Date()
+  "HistoryTime": indiaTime
   });
   var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
   var resultDB = await fetch("http://localhost:1212/returnHistoryCountByDate", requestOptions)
@@ -699,7 +705,7 @@ async function getHistoryTimeId()
       var myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
       var raw = JSON.stringify({
-      "HistoryTime": new Date() 
+      "HistoryTime": indiaTime 
       });
       var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
       var resultDB = await fetch("http://localhost:1212/insertInHistoryTime", requestOptions)
@@ -716,7 +722,7 @@ async function getHistoryTimeId()
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   var raw = JSON.stringify({
-  "EndDischarge": new Date() ,
+  "EndDischarge": indiaTime ,
   "UPSID" : UPSID
   });
   var requestOptions = {method: 'PUT',headers: myHeaders,body: raw,redirect: 'follow'};

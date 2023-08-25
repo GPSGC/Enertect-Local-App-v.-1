@@ -25,14 +25,14 @@ async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, reg
 (async () => {
 
     
-      //  modbusReadGet('192.168.0.105', '4002', 17, 3, 35, "Battery Voltage -17")
+         modbusReadGet('192.168.0.105', '4002', 17, 3, 35, "Battery Voltage -17")
        // modbusReadGet('192.168.0.105', '4002', 18, 3, 35, "Battery Voltage -18")  
         // modbusReadGet('192.168.0.101', '502', 19, 3, 35, "Battery Voltage -19")  
         // modbusReadGet('192.168.0.101', '502', 20, 3, 35, "Battery Voltage -20")      
         
        // modbusReadGet('192.168.0.106', '4002', 33, 3, 35, "Battery Voltage -33")
        // modbusReadGet('192.168.0.106', '4002', 34, 3, 35, "Battery Voltage -34")  
-         modbusReadGet('192.168.0.101', '502', 35, 3, 35, "Battery Voltage -35")  
+        // modbusReadGet('192.168.0.101', '502', 35, 3, 35, "Battery Voltage -35")  
         // modbusReadGet('192.168.0.101', '502', 36, 3, 35, "Battery Voltage -36") 
         
         // modbusReadGet('192.168.0.101', '502', 49, 3, 35, "Battery Voltage -49")
