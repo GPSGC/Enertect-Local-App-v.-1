@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Bootstrap demo</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    </head>
+
+    <body style="background-color: black; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <h1>Hello Modbus</h1>
+        <div>
+            <p>
+                <button id="startBtn" onclick="startUPS()">
+                    Start
+                </button>
+                <button id="startBtn" onclick="stopUPS()">
+                    Stop
+                </button>
+            </p>
+
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <p>Voltage</p>
+                <div id="result17v"></div>
+                <div id="result18v"></div>
+                <div id="result19v"></div>
+                <div id="result20v"></div>
+            </div>
+            <div class="col-6">
+                <div id="result17Div">
+                    <p>Temperature</p>
+                    <div id="result17t"></div>
+                    <div id="result18t"></div>
+                    <div id="result19t"></div>
+                    <div id="result20t"></div>
+                </div>
+            </div>
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            //@socket
+            var result17vC = 0;
+            var result18vC = 0;
+            var result19vC = 0;
+            var result20vC = 0;
+            var result17tC = 0;
+            var result18tC = 0;
+            var result19tC = 0;
+            var result20tC = 0;
+
+            var socket = io();
+
+            //@main
+            (async () => {
+
+                socket.on("dataIncoming", function (newData, DisplayName) {
+
+                    switch (DisplayName) {
+                        case "result17v": {
+                            result17vC++;
+                            renderHTML(result17v, newData, 1000, result17vC)
+                            break;
+                        }
+                        case "result18v": {
+                            result18vC++;
+                            renderHTML(result18v, newData, 1000, result18vC)
+                            break;
+                        }
+                        case "result19v": {
+                            result19vC++;
+                            renderHTML(result19v, newData, 1000, result19vC)
+                            break;
+                        }
+                        case "result20v": {
+                            result20vC++;
+                            renderHTML(result20v, newData, 1000, result20vC)
+                            break;
+                        }
+
+                        case "result17t": {
+                            result17tC++;
+                            renderHTML(result17t, newData, 100, result17tC)
+                            break;
+                        }
+                        case "result18t": {
+                            result18tC++;
+                            renderHTML(result18t, newData, 100, result18tC)
+                            break;
+                        }
+                        case "result19t": {
+                            result19tC++;
+                            renderHTML(result19t, newData, 100, result19tC)
+                            break;
+                        }
+                        case "result20t": {
+                            result20tC++;
+                            renderHTML(result20t, newData, 100, result20tC)
+                            break;
+                        }
+                    }
+
+                })
+
+                // startUPS();
+            })()
+            async function renderHTML(ele, newData, divide, c) {
+                var dataText = "";
+                for (data of newData) {
+                    dataText += `  ${data / divide}`;
+                }
+
+                ele.innerHTML = `<p>${dataText}</p><p>${new Date().toISOString()}</p> <p> Success Read Count = ${c}</p>`;
+
+            }
+            //@startUPS
+            async function startUPS() {
+
+                //'readRegister', (
+                //pModbusServer, portModbusServer, bankDeviceId,
+                //   registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName) => {
+                //}
+                console.log("started")
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 17, 0, 35, "UPS-1-V", "result17v");
+                }, 1000);
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 18, 0, 35, "UPS-1-V", "result18v");
+                }, 1000);
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 19, 0, 35, "UPS-1-V", "result19v");
+                }, 1000);
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 20, 0, 35, "UPS-1-V", "result20v");
+                }, 1000);
+
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 17, 909, 35, "UPS-1-V", "result17t");
+                }, 1000);
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 18, 909, 35, "UPS-1-V", "result18t");
+                }, 1000);
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 19, 909, 35, "UPS-1-V", "result19t");
+                }, 1000);
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister", "192.168.0.101", 502, 20, 909, 35, "UPS-1-V", "result20t");
+                }, 1000);
+            }
+
+            //@stopUPS
+            async function stopUPS() {
+                console.log("stop");
+                counterRead = 0;
+
+                clearInterval(intervalId);
+                //socket.emit("stopRegister", "UPS-1");
+                //'readRegister', (
+                //pModbusServer, portModbusServer, bankDeviceId,
+                //   registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName) => {
+                //}
+                // socket.emit("stopReading", "127.0.0.1", 502, 17, 0, 35, "UPS-1", "UPS-1Bank-1")
+            }
+
+        </script>
+
+    </body>
+
+</html>
