@@ -80,7 +80,7 @@ async function voltageSaveDB(voltageArray, DisplayName, BankDisplayName) {
         "DisplayNameBank": BankDisplayName,
         "VoltageValues": voltageArray
     }
-    
+
     try {
         modbusRemote.post(finalJSON2Upload);
     } catch (err) { console.log(err); }
@@ -89,7 +89,7 @@ async function voltageSaveDB(voltageArray, DisplayName, BankDisplayName) {
 (async () => {
     /*
     setInterval(function () {
-        //    readModbus("127.0.0.1", 502, 17, 0, 35, "UPS-1", "Bank-1")
+        //    readModbus("127.0.0.1", 502, 17, 0, a35, "UPS-1", "Bank-1")
     }, 1000);
     */
 
