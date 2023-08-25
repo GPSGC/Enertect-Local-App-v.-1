@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>q</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom-container@0.6.1"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    </head>
+
+    <body style="background-color: black; color:white;" class="mx-1">
+
+        <a href="#"><svg class="bi" width="16" height="16">
+                <use xlink:href="#x-circle-fill"></use>
+            </svg></a>
+        </span>
+        <div id="mainDiv">
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            //@var
+            var socket = io();
+            var upsList = [];
+
+            //@main
+            (async () => {
+                var startY = 0;
+                var x = 0;
+                var y = 0;
+                var h = 0;
+                var w = 0;
+                var s = 0;
+                upsList.push({
+                    DisplayName: "UPS-1",
+                    Banks: [
+                        {
+                            //Please note statically happening below. need to impleement.no use to update here
+                            BankId: "Bank-1", DisplayName: "Bank-1", BatteryNum: 35, DeviceId: 17, IP: "192.168.0.101", Port: 502,
+                            BankId: "Bank-2", DisplayName: "Bank-2", BatteryNum: 35, DeviceId: 18, IP: "192.168.0.101", Port: 502,
+                            BankId: "Bank-3", DisplayName: "Bank-3", BatteryNum: 35, DeviceId: 19, IP: "192.168.0.101", Port: 502,
+                            BankId: "Bank-4", DisplayName: "Bank-4", BatteryNum: 35, DeviceId: 20, IP: "192.168.0.101", Port: 502,
+                        }
+
+                    ]
+                })
+
+                for (u of upsList) {
+
+                    var h = ` <span class="bg-warning text-black px-1 py-1 mb-2">UPS-1</span>
+                    <span id="dateups-1">${new Date().toISOString()}</span>
+                                      <div id="divups-1" data-zoom-on-wheel data-pan-on-drag style="overflow: hidden; min-height:300px; margin-top: 20px;">
+                                        <svg id="svgups-1">
+                                            <g id="gups-1" transform="scale(4)">
+                                            </g>
+                                        </svg>
+                                        
+                                      </div>
+                                    `;
+                    mainDiv.innerHTML += h;
+                    bankPerSVG(0, 20, 5, 5, 1, "rgb(250,17,79)", "black", 0.08, 35, document.getElementById(`gups-1`), 2, "Bank-1", "V");
+                    bankPerSVG(0, 25, 5, 5, 1, "rgb(250,17,79)", "black", 0.08, 35, document.getElementById(`gups-1`), 2, "Bank-2", "V");
+                    bankPerSVG(0, 30, 5, 5, 1, "rgb(250,17,79)", "black", 0.08, 35, document.getElementById(`gups-1`), 2, "Bank-3", "V");
+                    bankPerSVG(0, 35, 5, 5, 1, "rgb(250,17,79)", "black", 0.08, 35, document.getElementById(`gups-1`), 2, "Bank-4", "V");
+
+                }
+                socket.on("dataIncoming", async function (newData, BankId) {
+                    // console.log(newData);
+                    console.log(BankId)
+                    renderHTML(newData, BankId);
+                });
+                upsStart(upsList, 5000);
+            })()
+
+            //@render
+            async function renderHTML(data, BankId) {
+
+                for (var i = 0; i < data.length; i++) {
+
+                    var vColorArray = await colorV(data[i] / 1000)
+                    console.log(vColorArray);
+                    if (document.getElementById(`Vrect${BankId}-${i}`)) {
+                        document.getElementById(`Vrect${BankId}-${i}`).setAttribute("fill", vColorArray[1]);
+                    } else { console.log("Rect - Not for " + `Vrect${BankId}-${i}`) }
+                    if (document.getElementById(`Vtext${BankId}-${i}`)) {
+                        document.getElementById(`Vtext${BankId}-${i}`).innerHTML = vColorArray[0] + "v";
+                    } else { console.log("No Text for" + `Vtext${BankId}-${i}`) }
+                }
+                document.getElementById("dateups-1").innerText = new Date().toISOString();
+
+            }
+            //@bsvg
+            function bankPerSVG(x, y, w, h, s, fr, ft, fs, q, gidEle, textDivide, bankUId, For) {
+                var html = "";
+                var vColorArray = "";
+                for (var i = 0; i < q; i++) {
+
+                    textX = x + (w / textDivide);
+                    textY = y + (h / textDivide);
+
+                    html += `   
+                                <rect id="Vrect${bankUId}-${i}" x="${x}" y="${y}"  width="${w}" height="${h}" 
+                                fill="white">    
+                                </rect>
+                                <text id="Vtext${bankUId}-${i}" x="${textX}" y="${textY}" fill="${ft}" 
+                                font-size="${fs}em" text-anchor="middle" text-baseline="middle">
+                                    13.2v
+                                </text>
+                            `;
+
+                    x = x + w + s;
+
+                }
+                gidEle.innerHTML += html;
+                return html;
+            }
+
+            async function colorV(v) {
+                var value = 0;
+                var c = "white";
+
+                if (v > 13 && v <= 20) {
+                    return [v, "rgb(207,230,56)"];
+                } else {
+                    return [value, c]
+                }
+
+                switch (v) {
+                    case (v > 13 && v <= 14): {
+                        break;
+                    }
+                    default: {
+                        return [v, "white"]
+                    }
+                }
+            }
+
+            //@start
+            async function upsStart(upsList, PoolingInterval) {
+
+                for (u of upsList) {
+                    for (b of u.Banks) {
+                        //newInterval(b, 5000)
+                        newInterval("192.168.0.101", 502, 17, 0, 35, "UPS-1", "Bank-1", 5000);
+                        await delayByMS(2000);
+                        newInterval("192.168.0.101", 502, 18, 0, 35, "UPS-1", "Bank-2", 5000);
+                        await delayByMS(2000);
+                        newInterval("192.168.0.101", 502, 19, 0, 35, "UPS-1", "Bank-3", 5000);
+                        await delayByMS(2000);
+                        newInterval("192.168.0.101", 502, 20, 0, 35, "UPS-1", "Bank-4", 5000);
+                    }
+                }
+
+            }
+            function newInterval(IP, Port, DeviceId, StartAddress, BatteryNum, UPSId, BankId, poolingInterval) {
+                setInterval(async function () {
+                    socket.emit("readRegister", IP, Port, DeviceId, 0, BatteryNum, UPSId, BankId);
+
+                }, poolingInterval)
+
+            }
+            //@stop
+            async function upsStop() {
+
+            }
+
+            //@delay
+            async function delayByMS(time) {
+                return new Promise(resolve => setTimeout(resolve, time));
+            }
+        </script>
+    </body>
+
+</html>
