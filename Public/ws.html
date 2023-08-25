@@ -128,9 +128,9 @@
                 intervalId = setInterval(() => {
                     socket.emit("readRegister", "192.168.0.105", 4002, 17, 0, 35, "UPS-1-V", "result17v");
                 }, 1000);
-                // intervalId = setInterval(() => {
-                //     socket.emit("readRegister", "192.168.0.101", 502, 18, 0, 35, "UPS-1-V", "result18v");
-                // }, 1000);
+                intervalId = setInterval(() => {
+                    socket.emit("readRegister",  "192.168.0.105", 4002, 18, 0, 35, "UPS-1-V", "result18v");
+                }, 1000);
                 // intervalId = setInterval(() => {
                 //     socket.emit("readRegister", "192.168.0.101", 502, 19, 0, 35, "UPS-1-V", "result19v");
                 // }, 1000);
