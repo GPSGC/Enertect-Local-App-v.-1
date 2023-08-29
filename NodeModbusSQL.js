@@ -1,5 +1,5 @@
 
- var express = require('express');
+var express = require('express');
 var app = express();
 var sql = require("mssql");
 const port = 1212
@@ -9,14 +9,14 @@ var jsonParser = bodyParser.json()
 app.use(express.static("public"));
 // config for your database
 var config = {
-    user: "nodeIndus2020",
-    password: "nodeIndus2020",
-    database: "NodeModbus", 
-    server: '114.79.133.104',
-    // user: "NodeModbus",
-    // password: "nodemodbus",
-    // database: "NodeModbus",
-    // server: 'localhost',
+    // user: "nodeIndus2020",
+    // password: "nodeIndus2020",
+    // database: "NodeModbus", 
+    // server: '114.79.133.104',
+    user: "NodeModbus",
+    password: "nodemodbus",
+    database: "NodeModbus",
+    server: 'localhost',
     parseJSON: true,
     options: {
         encrypt: false, // for azure
@@ -452,7 +452,7 @@ app.post('/insertIndichargerecord', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `INSERT INTO NodeDischargeRecord (UPSID,StartDischarge) OUTPUT Inserted.NodeDischargeRecordId  VALUES ('${req.body.UPSID}','${req.body.startdischarge}')`;
+        var sqlquery = `INSERT INTO NodeDischargeRecord (UPSID,StartDischarge,Status) OUTPUT Inserted.NodeDischargeRecordId  VALUES ('${req.body.UPSID}','${req.body.startdischarge}','${req.body.Status}')`;
         var request = new sql.Request();
 
         request.query(sqlquery, function (err, result) {
@@ -562,7 +562,7 @@ app.put('/UpdateStopDischargeByUPSID', jsonParser, function (req, res) {
     sql.connect(config, function (err) {
         if (err) throw err;
        // console.log("Connected!");
-        var sqlquery = `UPDATE  NodeDischargeRecord SET EndDischarge = '${req.body.EndDischarge}' WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) `;
+        var sqlquery = `UPDATE  NodeDischargeRecord SET EndDischarge = '${req.body.EndDischarge}',DischargeStatus= '${req.body.DischargeStatus}' WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) `;
         var request = new sql.Request();
         request.query(sqlquery, function (err, result) {
             if (!err)
@@ -700,4 +700,19 @@ WHERE  (NodeStringCurrent.NodeDashboardTimeId =
          res.send(recordset); 
         });
     });
+});
+app.post('/ReturnDischargeStatusByUPSID', jsonParser, function (req, res) {
+    sql.connect(config, function (err) {
+        if (err) throw err;
+       // console.log("Connected!");
+        var sqlquery = `SELECT DischargeStatus FROM NodeDischargeRecord WHERE (UPSID = '${req.body.UPSID}') AND (EndDischarge IS NULL) ORDER BY NodeDischargeRecordId DESC`;
+        var request = new sql.Request();
+        request.query(sqlquery, function (err, result) {
+            if (!err)
+                res.send(result);
+            else
+                res.send(err);
+        });
+    });
+
 });
