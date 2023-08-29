@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Sales</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(decodeURIComponent('%3Cscript src="js/jquery.min.js"%3E%3C/script%3E'))</script>
+    <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/22.1.6/css/dx.common.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/22.1.6/css/dx.light.css" />
+    <script src="https://cdn3.devexpress.com/jslib/22.1.6/js/dx.all.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css"/>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/22.2.3/css/dx.light.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">  
+   
+</head>
+  <body  class="ms-2 me-2  ">
+ <br>
+ <br>
+
+    <div class="demo-container">
+      <div style="border:1px solid lightgrey; padding: 10px;  "> 
+          <div   style="  vertical-align: middle; text-align: center; color: #52595D;" ><h4>Sales Amount </h4></div>
+          <div id="pivotGridContainer"></div>
+      </div>  
+      <br>
+      <br>
+      <br>
+      <div style="border:1px solid lightgrey; padding: 10px;  "> 
+        <div    style="  vertical-align: middle; text-align: center; color: #52595D;" ><h4>Expenses</h4></div>
+
+        <div id="pivotGridContainerE"></div>
+      </div>  
+      <br>
+      <br>
+      <br>
+      <div style="border:1px solid lightgrey; padding: 10px;  ">
+        <div style="  vertical-align: middle; text-align: center; color: #52595D;"  ><h4>Sales Amount Graph</h4></div>
+        <div id="pivotgrid-chart"></div>
+      </div>
+  </div>
+  </body>
+  <script>
+    //******************************************************Sales *************************************************
+
+const testarray=[];
+const serialNoArray=[];
+   var myHeaders = new Headers();
+               var requestOptions = {
+              method: 'GET',
+              headers: myHeaders,
+              redirect: 'follow'
+            };
+            fetch('https://indusnode.gpsgc.com/getsales', requestOptions)
+              .then(response => response.text())
+              .then(result =>
+               {
+                var tempJSON = JSON.parse(result);
+                var EngineerInfo;
+
+                    
+                    EngineerInfo = tempJSON.recordset ;
+                
+             
+                for (var i = 0; i < EngineerInfo.length; i++)
+                 {
+                   // const tempArray=  [EngineerInfo[i].SystemDate,EngineerInfo[i].ContractorName,EngineerInfo[i].U_Name, EngineerInfo[i].SAPID , EngineerInfo[i].CRNNo, EngineerInfo[i].JobNumber, EngineerInfo[i].Call_ID ];
+                    
+                    var tempnew =EngineerInfo[i];
+                    testarray.push(tempnew);
+              
+
+                  }
+                // console.log(testarray)
+
+ //******************************************************Sales bar *************************************************
+           
+                  $(() =>{
+  const pivotGridChart = $('#pivotgrid-chart').dxChart({
+    commonSeriesSettings: {
+      type: 'bar',
+    },
+    tooltip: {
+      enabled: true,
+      format: 'currency',
+      customizeTooltip(args) {
+        return {
+          html: `${args.seriesName} | Total<div class='currency'>${args.valueText}</div>`,
+        };
+      },
+    },
+    size: {
+      height: 200,
+    },
+    // adaptiveLayout: {
+    //   width: 450,
+    // },
+  }).dxChart('instance');
+//******************************************************Sales pivot*************************************************
+
+  const pivotGrid = $('#pivotGridContainer').dxPivotGrid({
+    allowSortingBySummary: true,
+    allowSorting: true,
+    allowFiltering: true,
+    allowExpandAll: true,
+    headerFilter: {
+      allowSearch: true,
+      showRelevantValues: true,
+      width: 300,
+      height: 400,
+    },
+     
+  //  width:440,
+    showBorders: true,
+    fieldPanel: {
+      showColumnFields: false,
+      showDataFields: false,
+      showFilterFields: false ,
+      showRowFields: true,
+      allowFieldDragging: true,
+      visible: true,
+    },
+    fieldChooser: {
+      enabled: true,
+    },
+    dataSource: {
+      fields: [{
+        caption: 'Organization',
+        dataField: 'DisplayName',
+        
+        area: 'row',
+        // selector(data) {
+        //   return `${data.city} (${data.country})`;
+        // },
+      },
+        {
+        caption: 'BU',
+       
+        dataField: 'BusinessUnitName',
+        area: 'row',
+      },
+      
+      
+      {
+        dataField: 'DocumentDate',
+        dataType: 'date',
+        area: 'column',
+      },
+    //  { dataField: '[VendorInvoiceDate].[Month of Year]', area: 'column' },
+    //   {
+    //     groupName: 'VendorInvoiceDate',
+    //     groupInterval: 'year',
+    //     expanded: true,
+    //   }, 
+    {
+        
+       
+      //  width: 20,
+        caption: 'USDTotal',
+        dataField: 'USDTotal',
+        dataType: 'number',
+        summaryType: 'sum',
+        format: 'currency',
+        area: 'data',
+      }],
+      store: testarray,
+    },
+  }).dxPivotGrid('instance');
+
+  pivotGrid.bindChart(pivotGridChart, {
+    dataFieldsDisplayMode: 'splitPanes',
+    alternateDataFields: false,
+  });
+
+  function expand() {
+    const dataSource = pivotGrid.getDataSource();
+  //  dataSource.expandHeaderItem('row', ['SINGAPORE']);
+    //dataSource.expandHeaderItem('column', [2022]);
+  }
+
+  setTimeout(expand, 0);
+});
+                })
+              .catch(error => console.log('error', error));
+
+            </script>
+</html>
+              

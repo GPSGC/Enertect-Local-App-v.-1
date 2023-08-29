@@ -22,10 +22,19 @@ io.on('connection', async function (socketws) {
         console.log('message: ' + msg);
     });
 
-    socketws.on('readRegister', async function (IPModbusServer, portModbusServer, bankDeviceId,
-        registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName) {
+    // socketws.on('readRegister', async function (IPModbusServer, portModbusServer, bankDeviceId,
+    //     registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName) {
 
-        readModbus(IPModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName, socketws)
+    //     readModbus(IPModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger, DisplayName, BankDisplayName, socketws)
+       
+    
+    socketws.on('readRegister', async function (IPModbusServer, portModbusServer, bankDeviceId,
+            registerStartInteger, registerNumberReadInteger, DisplayName) {
+    
+                modbusReadGet(IPModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger, 
+                    DisplayName,socketws)
+          
+      
         /*
     intervalID = setInterval(async function () {
         readModbus("127.0.0.1", 502, 17, 0, 35, "UPS-1", "Bank-1", socketws)
@@ -63,16 +72,43 @@ async function readModbus(ipModbusServer, portModbusServer, bankDeviceId,
 
 }
 
+async function modbusReadGet(ipModbusServer, portModbusServer, bankDeviceId, registerStartInteger, registerNumberReadInteger, 
+    displayName,socketws) {
+
+    const socket = new net.Socket()
+    const client = new modbus.client.TCP(socket, bankDeviceId, 15000);
+    socket.on('error', console.error)
+    socket.connect({ 'host': ipModbusServer, 'port': portModbusServer })
+    socket.on('connect', function () {
+        client.readHoldingRegisters(registerStartInteger, registerNumberReadInteger)
+            .then(function (resp) {
+                console.log(displayName);
+                console.log(resp.response._body.valuesAsArray);
+                socketws.emit("dataIncoming", resp.response._body.valuesAsArray, BankDisplayName)
+                socket.end()
+
+                
+            }).catch(function (err) {
+                
+                console.log(err);
+                socket.end()
+                socketws.emit("dataIncoming", err, BankDisplayName);
+                return false;
+            })
+    })
+}
 async function delayByMS(time) {
     return new Promise(resolve => setTimeout(resolve, time));
 }
- 
+
 
 (async () => {
+   // modbusReadGet('192.168.0.105', '4002', 17, 3, 35, "Battery Voltage -17")
+    //readModbus("192.168.0.105", 4002, 17, 3, 35, "UPS-1", "Bank-1")
     /*
     setInterval(function () {
         //    readModbus("127.0.0.1", 502, 17, 0, 35, "UPS-1", "Bank-1")
     }, 1000);
     */
-    readModbus("192.168.0.105", 4002, 17, 0, 35, "UPS-1", "Bank-1")
+    //socket.emit("readRegister", "192.168.0.105", 4002, 17, 0, 35, "UPS-1-V", "result17v");
 })()
