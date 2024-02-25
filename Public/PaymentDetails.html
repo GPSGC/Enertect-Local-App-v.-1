@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- The page supports both dark and light color schemes,
+         and the page author prefers / default is light. -->
+    <!-- <meta name="color-scheme" content="light dark"> -->
+
+    <!-- Replace the Bootstrap CSS with the
+         Bootstrap-Dark Variant CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <script src="js/pouchdb.min.js"></script>
+    <title>Add Payment Details</title>
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+   <!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<!-- Bootstrap JS and Popper.js -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+   <!-- Bootstrap Datepicker -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
+    <script>window.jQuery || document.write(decodeURIComponent('%3Cscript src="js/jquery.min.js"%3E%3C/script%3E'))</script>
+</head>
+<body>
+  <div class="m-2">
+    <h3>Add Payment Details</h3>
+    <form target="_parent" >
+        <div class="mb-1">
+        <label for="PaymentDate">Payment Date</label>
+        <input class="form-control inputCleaveDate" id="PaymentDate" placeholder="DD/MM/YYYY" />
+        <!-- <input id="startDate" class="form-control inputCleaveDate" type="date"  placeholder="DD/MM/YYYY" /> -->
+     </div>
+     <div class="mb-1">
+        <label for="amount">Paid Amount</label>
+        <input  type="text"  class="form-control" placeholder="amount" id="amount"  > 
+      </div>
+      <div class="mb-1">
+        <label for="BankList" >Vendor Bank</label>
+        <select class="form-control selec2"  id="BankList"   onchange="OnBankListChanged(this.value);" >
+            <option value="" disabled selected hidden>Select Bank</option>
+            <option value="NONE"  >NONE</option>
+        </select>
+        
+      </div>
+     <div class="mb-1">
+        <label for="formFile">Document-1</label>
+        <input class="form-control" type="file" id="inputFile1" onchange="javascript:updateSiteVisitReport()">
+        <div id="divFileList1">
+            <p>No files selected!</p>
+        </div>
+    </div>
+    <div class="mb-1">
+        <label for="formFile">Document-2</label>
+        <input class="form-control" type="file" id="inputFile2">
+        <div id="divFileList2">
+            <p>No files selected!</p>
+        </div>
+    </div>
+    <div class="mb-1">
+        <label for="Remark">Remark</label>
+        <textarea class="form-control" placeholder="Leave a remark here" id="remark" style="height: 100px"></textarea>
+
+    </div>
+    <button type="button" class="btn btn-primary btn-block mb-4" onclick="clickbtnSubmit()">Update Payment</button>
+    <br />  <label id="lblConfirm"> </label>
+    <div id="outpufiles"></div>
+    <script>
+  $(document).ready(function() {
+    $("#PaymentDate").datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true,
+        defaultDate: new Date(), // Set today's date as default
+        endDate: new Date() // Optional: To restrict selecting future dates
+    });
+});
+
+
+       const allfilename = []; 
+  var Documet1FileName;
+      const nestarray=[];
+      const bankarray=[];
+      var selectedbankarray ;
+        const urlParams = new URLSearchParams(window.location.search);
+        let text =urlParams.get('paymentarray');
+        // const paymentarray=[];
+        // paymentarray.push(urlParams.get('paymentarray'));
+         const myArray = text.split(",");
+
+         const VendorName = urlParams.get('VendorName');
+          // console.log(myArray);
+          const Amount = urlParams.get('Amount');
+          amount.value=Amount;
+
+          var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+     var raw = JSON.stringify({
+      CompanyName: VendorName
+                });
+
+      var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      
+      redirect: 'follow'
+     };
+
+
+                fetch("https://indusnode.gpsgc.com/VendorBankDetails", requestOptions)
+                  .then(response => response.text())
+                  .then(result => {
+                    var tempJSON = JSON.parse(result);
+                   
+                             
+                for (var i = 0; i < tempJSON.recordset.length; i++) {
+                    
+                    var tempRow = tempJSON.recordset[i];
+                 console.log(tempRow);
+                    var opt = document.createElement('option');
+                    opt.value = tempRow.Currency;
+                    opt.innerText  = tempRow.BankName  + "-" + tempRow.Currency;
+                    BankList.appendChild(opt);
+                    bankarray.push(tempRow)
+                  
+                }
+                                    
+                  })
+                  .catch(error => console.log('error', error));
+                console.log(bankarray)
+          function clickbtnSubmit()
+        {
+            var myHeaders=new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            var requestOptions={method:'GET',headers:myHeaders,};
+            fetch("https://indusnode.gpsgc.com/getPayDetailsMaxNo", requestOptions)
+            .then(response=>response.text())
+            .then(result=>{
+                var temp1=JSON.parse(result);
+                console.log(temp1);
+                var finalData = temp1.recordset[0];
+                console.log(finalData);
+                if (finalData.Expr1 === undefined || finalData.Expr1 === null) {
+                  LastDigit = "0"
+                 }
+                else {
+                  LastDigit = finalData.Expr1;
+                 }
+                 LastDigit = parseInt(LastDigit) + 1;
+                 PaymentDetailsNo = "GPSPYISG" + "-" + new Date().getFullYear() + "-" + String(LastDigit).padStart(4, '0');
+                 var  d =  PaymentDate.value ;
+             const [day, month, year] = d.split('/');
+             const AVdate = new Date(+year, +month - 1, +day);
+
+             var initial = d.split(/\//);
+           // console.log( [initial[1], initial[0], initial[2] ].join('/'));
+            var dateformat=[initial[1], initial[0], initial[2] ].join('/');
+                 var myHeaders = new Headers();
+                 myHeaders.append("Content-Type", "application/json");
+                 var raw = JSON.stringify({
+                  "PaymentMode": "None",
+                  "ReferenceNo": PaymentDetailsNo,
+                  "PaymentDate": dateformat,//new Date(), // Date().toLocaleDateString()
+                  "PaidAmount": amount.value,
+                  "PaymentRemarks" :remark.value,
+                  "DocumentUpload": Documet1FileName,
+                  "VendorName":VendorName
+                 
+                });
+                var requestOptions = {
+                  method: 'POST',
+                  headers: myHeaders,
+                  body: raw,
+                  redirect: 'follow'
+                };
+                fetch("https://indusnode.gpsgc.com/InsertPaymentdetails", requestOptions)
+                  .then(response => response.text())
+                  .then(result=>{
+                    var tempJSON= JSON.parse(result);
+                  //  console.log(tempJSON)
+                    BUPaymentDetailsID = tempJSON.recordset[0].BUPaymentDetailsID;
+                    for (let i = 0; i < myArray.length; i += 1) 
+                    {
+                        console.log("BUPaymentId -" + myArray[i]);
+                        var myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/json");
+
+                       var raw = JSON.stringify({
+                        "BUPaymentDetailsId": BUPaymentDetailsID,
+                        "BUPaymentId": myArray[i],
+                        "Status": "Paid"
+                      });
+                      var requestOptions = {
+
+                        method: 'PUT',
+                        headers: myHeaders,
+                        body: raw,
+                        redirect: 'follow'
+                      };
+
+                      fetch("https://indusnode.gpsgc.com/UpdateIdInPaymet", requestOptions)
+                        .then(response => response.text())
+                        .then(result=>{
+                            var tempJSON = JSON.parse(result);
+                        })
+                        .catch(error => console.log('error', error));
+
+                       
+                    }
+               
+                 //**********
+                         var myHeaders = new Headers();
+                          myHeaders.append("Content-Type", "application/json");
+                          var raw = JSON.stringify({
+                          "BUPaymentDetailsID": BUPaymentDetailsID });
+
+                         var requestOptions = {
+                           method: 'POST',
+                           headers: myHeaders,
+                           body:raw,
+                           redirect: 'follow'
+                           };
+                           fetch('https://indusnode.gpsgc.com/getPaymentDetailsDataNested', requestOptions)
+                          .then(response => response.text())
+                          .then(result =>
+                           {
+     
+                              var tempJSON = JSON.parse(result);
+                              var NestInfo;
+                              NestInfo = tempJSON.recordset; 
+                            //  console.log(NestInfo)
+                              for (var i = 0; i < NestInfo.length; i++) 
+                            {
+                                var tempnew1 = NestInfo[i];
+                                nestarray.push(tempnew1);
+                                
+                              }
+                              //********
+                            console.log(nestarray);
+                              var wisecreatetransfer = new PouchDB("https://admin:admin@1.qindus.io/induspayment");
+                               var objUpload = {
+                              BUPaymentDetailsId: BUPaymentDetailsID,
+                              PaymentDate: dateformat, // Date().toLocaleDateString()
+                              PaidAmount: amount.value,
+                              PaymentRemarks :remark.value,
+                              PayementDetailsReferenceNo: PaymentDetailsNo,
+                              BankDetails:selectedbankarray,
+                              VendorDetails:nestarray
+                                }
+                             
+                               console.log(objUpload);
+                                wisecreatetransfer.post(objUpload);
+                            })
+                
+                  })
+
+              
+                })
+            .catch(error => console.log('error', error));
+            
+     
+        //              setTimeout(() => {
+        //   window.close()
+        // }, 1000)
+             
+          window.setTimeout(function(){window.close();},2000);
+          window.open('https://indusnode.gpsgc.com/ViewPaymentDetails.html');
+     
+        // window.setTimeout(function(){window.location.href = "ViewPaymentDetails.html";}, 1000);
+        }
+
+        updateSiteVisitReport = function() {
+    var input = document.getElementById('inputFile1');
+    sendFile1(input.files[0],divFileList1);
+  }
+  function sendFile1(file,divName) {
+                const uri = "/stats";
+                const xhr = new XMLHttpRequest();
+                const fd = new FormData();
+
+                xhr.open("POST", uri, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        divName.innerHTML = "<b>File Uploaded Successfully.</b>";// handle response.
+                        // console.log(xhr.response);
+                        // console.log(xhr.responseText);
+                       // console.log(divName );
+                        var temp = xhr.responseText.replace('"', '');
+                         
+                        Documet1FileName = temp.replace(/[/\\?%*:,|"<>]/g, '').split(" ").join("_");
+                        //lblConfirm.innerHTML=filename;
+                        console.log(Documet1FileName);
+                        
+                    }
+                };
+                
+                fd.append('uploaded_file', file);
+                // Initiate a multipart/form-data upload
+                xhr.send(fd);
+                
+            }
+ 
+  function OnBankListChanged(value){
+      console.log(value);
+      
+        selectedbankarray=bankarray.filter( x => x.Currency === value);
+      console.log(selectedbankarray);
+    }
+ </script>
+   
+
+  </form>
+   </div>  
+</body>

@@ -8,24 +8,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script>window.jQuery || document.write(decodeURIComponent('%3Cscript src="js/jquery.min.js"%3E%3C/script%3E'))</script>
+
+   <!-- Library for multiselect  -->
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+   <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  <!-- A DevExtreme library -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/js/bootstrap-multiselect.js"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/css/bootstrap-multiselect.css">
+
   <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/22.2.3/css/dx.light.css" />
   <script src="https://cdn3.devexpress.com/jslib/22.2.3/js/dx.all.js"></script>
   
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+ 
 </head>
 
-<body class="dx-viewport">
+<body class="dx-viewport" style="padding:10px;">
+  
   <div class="demo-container">
-    <div id="calculateButton"></div>
+    <div   id="calculateButton"></div>
     <br>
     <br>
 
     <div class="mb-1">
-     
-      <select class="form-control selec2"  id="MonthList"  onchange="OnMonthChanged(this.value); " style="width: 200px;">
-        <option value=''>--Select Vendor Invoice Month--</option>
+      <span><strong>Select Month : </strong></span> 
+      <select   class="form-control selec2" id="MonthList" onchange="OnMonthChanged();"  multiple>
+        <!-- <option value=''>--Select Vendor Invoice Month--</option> -->
         <option value= '1'>Janaury</option>
         <option value='2'>February</option>
         <option value='3'>March</option>
@@ -40,7 +50,7 @@
         <option value='12'>December</option>
          
       </select>
-      
+      <span>(Vendor InvoiceDate)</span> 
     </div>
     
     <div id="gridContainer"></div>
@@ -55,53 +65,72 @@
 
 </body>
 <script>
- const testarray = [];
-function OnMonthChanged(value)
-{
+   $(document).ready(function() {
+        $('#MonthList').multiselect({
+          includeSelectAllOption: true,
+        });
+    });
 
-//console.log(value);
- 
+ const testarray = [];
+ function OnMonthChanged() {
+  const selectedMonths = $('#MonthList').val(); // Get an array of selected values
+
+  if (!selectedMonths || selectedMonths.length === 0) {
+    // Handle the case where no months are selected
+    console.log("No month selected");
+    return;
+  }
+
+  // Clear testarray before fetching new data
+  testarray.length = 0;
+
+  selectedMonths.forEach(value => {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    var raw = JSON.stringify({
+      "Month": value
+    });
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+    };
+
+    fetch('https://indusnode.gpsgc.com/getPaymentData', requestOptions)
+      .then(response => response.text())
+      .then(result => {
+      
+        var tempJSON = JSON.parse(result);
+        var EngineerInfo = tempJSON.recordset;
+
+        for (var i = 0; i < EngineerInfo.length; i++) {
+          var tempnew = EngineerInfo[i];
+          testarray.push(tempnew);
+        }
+       
+        //console.log(testarray);
+        // Populate the grid once all months have been processed
+        if (value === selectedMonths[selectedMonths.length - 1])
+         {
+          
+          populateDataGrid();
+        }
+      })
+      .catch(error => console.log('error', error));
+  });
+  
+}
   const paymentarray=[];
   const serialNoArray = [];
-  var myHeaders = new Headers();
-myHeaders.append("Content-Type", "application/json");
- var raw = JSON.stringify({
-  "Month": value 
-});
-  var requestOptions =
-   {
-    method: 'POST',
-    headers: myHeaders,
-    body: raw,
-    redirect: 'follow'
-   };
-
-  fetch('https://indusnode.gpsgc.com/getPaymentData', requestOptions)
-    .then(response => response.text())
-    .then(result => {
-     
-      var tempJSON = JSON.parse(result);
-      var EngineerInfo;
-
-
-      EngineerInfo = tempJSON.recordset;
-
-
-      for (var i = 0; i < EngineerInfo.length; i++) 
-      {
-        // const tempArray=  [EngineerInfo[i].SystemDate,EngineerInfo[i].ContractorName,EngineerInfo[i].U_Name, EngineerInfo[i].SAPID , EngineerInfo[i].CRNNo, EngineerInfo[i].JobNumber, EngineerInfo[i].Call_ID ];
-
-        var tempnew = EngineerInfo[i];
-        testarray.push(tempnew);
-
-      }
-    
-    
-      //  console.log(testarray)
-      $(() => 
-      {
-        const MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
-        let dataGrid;
+  let dataGrid;
+function populateDataGrid()
+{
+ 
+  const MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
+        
         $('#gridContainer').dxDataGrid
         ({
           theme: "bootstrap4-dark",
@@ -204,23 +233,24 @@ myHeaders.append("Content-Type", "application/json");
           },
           onCellPrepared: function(e) {  
       
-      if (e.rowType === "data" && e.column.command === 'select' &&  (e.data.Status) =="Paid") {  
+         if (e.rowType === "data" && e.column.command === 'select' &&  (e.data.Status) =="Paid") {  
           var instance = e.cellElement.find('.dx-select-checkbox').dxCheckBox("instance");  
           instance.option("disabled", true);  
           e.cellElement.off();  
+          dataGrid = e.component;
       }  
   },
-  onEditorPreparing: function(e) {  
+          onEditorPreparing: function(e) {  
               if (e.parentType=='headerRow' && e.command=='select') {  
                   e.editorElement.remove();  
 
               }  
 },
           rowAlternationEnabled: true,
-    showRowLines:true,
+         showRowLines:true,
           onInitialized(e)
            {
-             
+           
             dataGrid = e.component;
             console.log("DataGrid initialized:", dataGrid);
             // calculateStatistics();
@@ -230,15 +260,19 @@ myHeaders.append("Content-Type", "application/json");
 
         });
       
-        var PaymentDetailsNo;
-        function calculateStatistics()
-         {
-          if (!dataGrid) {
+        var PaymentDetailsNo; 
+   function calculateStatistics()
+    { 
+      if (!dataGrid) {
         console.error("DataGrid is not initialized!");
         return; 
-    }
+      }
+      else
+      {
+        console.error("DataGrid is initialized!");
+      }
           dataGrid.getSelectedRowsData().then((rowData) => {
-         
+          //console.log(rowData);
             //         //*********************************************************************************************
                      let sumTotalAmount = 0;
                      var VendorName=rowData[0].PayToName
@@ -268,30 +302,21 @@ myHeaders.append("Content-Type", "application/json");
                     // if (window.focus) { popupwindow.focus(); }
 
 
-          });
+         });
+ 
+    }
 
-
-        }
-
-        $('#calculateButton').dxButton
-        ({
+    $('#calculateButton').dxButton
+    ({
           text: 'Get Total Amt of selected row and add Payment Details',
           type: 'default',
-          onClick: calculateStatistics,
+          onClick: function() {
+        console.log("Calculate button clicked!"); // Check if the button click event is triggered
+        calculateStatistics();
+    },
 
-        });
-
-      });
-
-    })
-    .catch(error => console.log('error', error));
-
-  }
-
-    $(document).ready(function() {
-  $(".selec2").select2();
-});
-
+    });
+}
 function deleteRow(id) {
   // You can add a confirmation dialog here if needed
   if (confirm("Are you sure you want to delete this row?")) {

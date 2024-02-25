@@ -55,12 +55,12 @@
 
 </body>
 <script>
- const testarray = [];
+
 function OnMonthChanged(value)
 {
 
 //console.log(value);
- 
+  const testarray = [];
   const paymentarray=[];
   const serialNoArray = [];
   var myHeaders = new Headers();
@@ -104,7 +104,6 @@ myHeaders.append("Content-Type", "application/json");
         let dataGrid;
         $('#gridContainer').dxDataGrid
         ({
-          theme: "bootstrap4-dark",
         //   summary: {
         //     groupItems: [{
         //         column: "Amount",
@@ -146,19 +145,6 @@ myHeaders.append("Content-Type", "application/json");
           },
           "Status",
             "BusinessUnit", "PayCategory",
-  //           {
-  //   type: "buttons",
-  //   buttons: [
-  //     {
-  //       hint: "Delete",
-  //       icon: "trash",
-  //       onClick: function(e) {
-  //         deleteRow(e.row.data.BUPaymentId);
-
-  //       }
-  //     }
-  //   ]
-  // }
           ],
           summary: {
       totalItems: [  {
@@ -180,7 +166,7 @@ myHeaders.append("Content-Type", "application/json");
           },
           pager: {
             visible: true,
-            allowedPageSizes: [100, 200, 'all'],
+            allowedPageSizes: [5, 10, 'all'],
             showPageSizeSelector: true,
             showInfo: true,
             showNavigationButtons: true,
@@ -220,9 +206,7 @@ myHeaders.append("Content-Type", "application/json");
     showRowLines:true,
           onInitialized(e)
            {
-             
             dataGrid = e.component;
-            console.log("DataGrid initialized:", dataGrid);
             // calculateStatistics();
           },
           wordWrapEnabled: true,
@@ -233,12 +217,66 @@ myHeaders.append("Content-Type", "application/json");
         var PaymentDetailsNo;
         function calculateStatistics()
          {
-          if (!dataGrid) {
-        console.error("DataGrid is not initialized!");
-        return; 
-    }
           dataGrid.getSelectedRowsData().then((rowData) => {
-         
+            //*********************************************************************************************
+            // var myHeaders = new Headers();
+            // myHeaders.append("Content-Type", "application/json");
+            // var requestOptions = {
+            //   method: 'GET',
+            //   headers: myHeaders,
+
+            //   redirect: 'follow'
+            // };
+
+            // fetch("https://indusnode.gpsgc.com/getPayDetailsMaxNo", requestOptions)
+            //   .then(response => response.text())
+            //   .then(result => {
+            //     var temp1 = JSON.parse(result);
+            //     // console.log(temp1);
+            //     var finalData = temp1.recordset[0];
+            //     //console.log(finalData);
+
+            //     if (finalData.Expr1 === undefined || finalData.Expr1 === null) {
+            //       LastDigit = "0"
+            //     }
+            //     else {
+            //       LastDigit = finalData.Expr1;
+            //     }
+
+            //     // console.log("MaxNo: " + LastDigit);
+            //     // //********************************************************************************************
+            //     LastDigit = parseInt(LastDigit) + 1;
+            //     //  console.log("NewNo: " + LastDigit);
+
+               //  PaymentDetailsNo = "GPSPYISG" + "-" + new Date().getFullYear() + "-" + String(LastDigit).padStart(4, '0');
+
+            //     // console.log( "PaymentDetailsNo: " +  PaymentDetailsNo);
+            //     //***********************************Insert CRN***********************************************************
+
+            //     var myHeaders = new Headers();
+            //     myHeaders.append("Content-Type", "application/json");
+
+            //     var raw = JSON.stringify({
+            //       "PaymentMode": "Wise",
+            //       "ReferenceNo": PaymentDetailsNo,
+            //       "PaymentDate": new Date() // Date().toLocaleDateString()
+            //     });
+
+            //     var requestOptions = {
+            //       method: 'POST',
+            //       headers: myHeaders,
+            //       body: raw,
+            //       redirect: 'follow'
+            //     };
+
+            //     fetch("https://indusnode.gpsgc.com/InsertPaymentdetails", requestOptions)
+            //       .then(response => response.text())
+            //       .then(result => {
+            //         var tempJSON = JSON.parse(result);
+            //         //  console.log(tempJSON);
+            //         BUPaymentDetailsID = tempJSON.recordset[0].BUPaymentDetailsID;
+
+            //         console.log("BUPaymentDetailsID -" + BUPaymentDetailsID);
             //         //*********************************************************************************************
                      let sumTotalAmount = 0;
                      var VendorName=rowData[0].PayToName
@@ -249,23 +287,65 @@ myHeaders.append("Content-Type", "application/json");
                       var tempnew = rowData[i].BUPaymentId;
                       paymentarray.push(tempnew);
                     
-          
+            //           //var queryString = '?paymentarray=' + paymentarray.join(',');
                     
                       sumTotalAmount += rowData[i].Amount;
-           
+            //           console.log("BUPaymentId -" + rowData[i].BUPaymentId);
+            //           //****************************UPDATE*****************************************************************
 
-         
+            //           var myHeaders = new Headers();
+            //           myHeaders.append("Content-Type", "application/json");
+
+            //           var raw = JSON.stringify({
+            //             "BUPaymentDetailsId": BUPaymentDetailsID,
+            //             "BUPaymentId": rowData[i].BUPaymentId
+            //           });
+
+            //           var requestOptions = {
+            //             method: 'PUT',
+            //             headers: myHeaders,
+            //             body: raw,
+            //             redirect: 'follow'
+            //           };
+
+            //           fetch("https://indusnode.gpsgc.com/UpdateIdInPaymet", requestOptions)
+            //             .then(response => response.text())
+            //             .then(result => {
+            //               var tempJSON = JSON.parse(result);
+            //               // console.log(tempJSON);
+            //             })
+            //             .catch(error => console.log('error', error));
+
+            //           //*********************************************************************************************
+
                     }
                    console.log(sumTotalAmount);
                     $('#avg-duration').text(sumTotalAmount || 0);
 
-                    const url = "https://indusnode.gpsgc.com/PaymentDetails1.html?Amount=" + sumTotalAmount  + "&paymentarray=" + paymentarray + "&VendorName=" + VendorName;
-                   
+                    const url = "https://indusnode.gpsgc.com/PaymentDetails.html?Amount=" + sumTotalAmount  + "&paymentarray=" + paymentarray + "&VendorName=" + VendorName;
+                    //  window.location.href = url;
+                    //  window.open(url,"MsgWindow", "width=600,height=600"); 
+
+                    // //*********************************************************************************************
+                    //       var popupwindow;
+                    //       var sharedObject = {};
+                    //       sharedObject.var1 = sumTotalAmount
                     //       sharedObject.var2 = PaymentDetailsNo
 
                     // Open the popup window
                     window.open(url, "MsgWindow", "width=600,height=620");
                     // if (window.focus) { popupwindow.focus(); }
+
+
+
+
+              //     })
+              //     .catch(error => console.log('error', error));
+
+              // })
+              // .catch(error => console.log('error', error));
+
+
 
 
           });
@@ -291,39 +371,6 @@ myHeaders.append("Content-Type", "application/json");
     $(document).ready(function() {
   $(".selec2").select2();
 });
-
-function deleteRow(id) {
-  // You can add a confirmation dialog here if needed
-  if (confirm("Are you sure you want to delete this row?")) {
-    
-    console.log(id);
-     
-  //****************************Delete BUPayment*********************************************
-    var myHeaders = new Headers();
-       myHeaders.append("Content-Type", "application/json");
-      var raw = JSON.stringify({BUPaymentId: id}); 
-       var requestOptions = {method: 'POST',headers: myHeaders,body: raw,redirect: 'follow'};
-           fetch("https://indusnode.gpsgc.com/deleteBUPaymentById", requestOptions)
-                   .then(response => response.text())
-                   .then(result => {
-                     var tempJSON = JSON.parse(result);
-                    
-         // After successful deletion, update the data source of the dxDataGrid
-        var dataGridInstance = $('#gridContainer').dxDataGrid('instance');
-        
-        // Remove the deleted row from the dataSource
-        var index = testarray.findIndex(item => item.BUPaymentId === id);
-        if (index > -1) {
-          testarray.splice(index, 1);
-        }
-        
-        // Refresh the dxDataGrid
-        dataGridInstance.option('dataSource', testarray);
-                     })
-                   .catch(error => console.log('error', error));
-                
-  }
-}
 </script>
 <style>
       .select2-container .select2-selection--single {

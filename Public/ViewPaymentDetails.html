@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>View Payment</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write(decodeURIComponent('%3Cscript src="js/jquery.min.js"%3E%3C/script%3E'))</script>
+  <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/22.2.3/css/dx.light.css" />
+  <script src="https://cdn3.devexpress.com/jslib/22.2.3/js/dx.all.js"></script>
+  
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+  <style>
+    /* Increase the size of the expand/collapse indicator with higher specificity */
+.dx-datagrid .dx-datagrid-nested-icon.dx-datagrid-expand-icon::before,
+.dx-datagrid .dx-datagrid-nested-icon.dx-datagrid-collapse-icon::before {
+    font-size: 40px !important; /* Use !important to ensure the style is applied */
+}
+
+    /* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 40%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+  </style>
+</head>
+<body class="dx-viewport">
+ 
+<div id="myModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Select Receipt File</h2>
+    <input type="file" id="receiptFile" accept=".pdf, .jpg, .jpeg, .png" />
+    <button id="uploadBtn">Upload</button>
+  </div>
+</div>
+
+    <div class="demo-container">
+         
+      <div id="gridContainer"></div>
+      
+    </div>
+  
+  </body>
+  <script>
+ const testarray=[];
+ const nestarray=[];
+  var myHeaders = new Headers();
+myHeaders.append("Content-Type", "application/json");
+
+  var requestOptions =
+   {
+    method: 'GET',
+    headers: myHeaders,
+   
+    redirect: 'follow'
+   };
+   fetch("https://indusnode.gpsgc.com/getPaymentDetailsData", requestOptions)
+   .then(response => response.text())
+   .then(result=>{
+    var tempJSON = JSON.parse(result);
+                    var EngineerInfo;
+                    EngineerInfo = tempJSON.recordset ;
+                
+                    for (var i = 0; i < EngineerInfo.length; i++)
+                     {
+                        var tempnew =EngineerInfo[i];
+                        testarray.push(tempnew);
+                        
+                        BUPaymentDetailsID = EngineerInfo[i].BUPaymentDetailsID;
+                      
+                        var myHeaders = new Headers();
+                          myHeaders.append("Content-Type", "application/json");
+                          var raw = JSON.stringify({
+                          "BUPaymentDetailsID": BUPaymentDetailsID });
+
+                         var requestOptions = {
+                           method: 'POST',
+                           headers: myHeaders,
+                           body:raw,
+                           redirect: 'follow'
+                           };
+                           fetch('https://indusnode.gpsgc.com/getPaymentDetailsDataNested', requestOptions)
+                          .then(response => response.text())
+                          .then(result => {
+     
+                           var tempJSON = JSON.parse(result);
+                           var NestInfo;
+                           NestInfo = tempJSON.recordset;
+                          for (var i = 0; i < NestInfo.length; i++) 
+                         {
+                            var tempnew1 = NestInfo[i];
+                             nestarray.push(tempnew1);
+
+                          } })
+                     
+                      }
+                      console.log(nestarray);
+                      $(() =>
+                       {
+                        let dataGrid;
+  $('#gridContainer').dxDataGrid
+  ({
+    dataSource: testarray,
+    keyExpr: 'BUPaymentDetailsID',
+   
+    columns: [
+    {
+        caption: 'Upload Receipt',
+        cellTemplate: function(container, options) {
+            $('<button class="upload-button">Upload Receipt</button>').appendTo(container);
+        },
+        width: 130,
+        alignment: 'center',
+        allowFiltering: false,
+        allowSorting: false,
+        cellClick: function(e) {
+            // Handle the button click event to upload a receipt
+            var clickedData = e.row.data;
+            uploadReceipt(clickedData.BUPaymentDetailsID);
+        }
+    },
+        {
+            dataField: "PayToName",
+            width:270,
+           // groupIndex: 0
+        },
+        "Currency",  
+        
+        {dataField:"ReferenceNo",width:160}, 
+         
+        {dataField:"PaidAmount"}, 
+        {
+            dataField: "PaymentDate", 
+            dataType: "date",
+        }
+       
+        ],
+        summary: {
+      totalItems: [  {
+        column: 'PaidAmount',
+        
+        summaryType: 'sum' ,
+        valueFormat: " #,##0.##",  
+       displayFormat: "Total: {0}" 
+      }],
+    },
+        masterDetail: {
+      enabled: true,
+      template(container, options) {
+        const currentEmployeeData = options.data;
+        $('<div>')
+          .dxDataGrid({
+            columnAutoWidth: true,
+            showBorders: true,
+            columns: ['PayToName',
+             {
+              dataField: 'SystemDate',
+              dataType: 'date',
+            }, 'TypeOfPayment',
+            'Amount', 'Currency', 'BusinessUnit',
+            'DocumentNo'
+
+           
+          ],
+            dataSource: new DevExpress.data.DataSource({
+              store: new DevExpress.data.ArrayStore({
+                key: 'BUPaymentDetailsID',
+                data: nestarray,
+              }),
+              filter: ['BUPaymentDetailsID', '=', options.key],
+            }),
+            
+          }).appendTo(container);
+      }
+                  
+      },
+       
+      sorting: {
+      mode: 'multiple',
+    },
+    showBorders: true,
+    columnsAutoWidth: true,
+    paging: {
+      pageSize: 10
+    },
+    pager: {
+      visible: true,
+         allowedPageSizes: [100,200, 'all'],
+      showPageSizeSelector: true,
+      showInfo: true,
+      showNavigationButtons: true,
+    },
+    filterRow: {
+      visible: true,
+      applyFilter: 'auto',
+    },
+    searchPanel: {
+      visible: true,
+      width: 240,
+      placeholder: 'Search...',
+    },
+    groupPanel: {
+      visible: true,
+    },
+    selection: {
+      mode: 'multiple',
+      deferred: true,
+    },
+    onInitialized(e) {
+      dataGrid = e.component;
+     // calculateStatistics();
+    },
+   wordWrapEnabled: true,
+        allowColumnReordering: true,
+  })
+})
+
+                      
+   })
+   .catch(error => console.log('error', error));
+                 
+ 
+   function uploadReceipt(BUPaymentDetailsID) {
+    
+    console.log('Upload receipt for BUPaymentDetailsID:', BUPaymentDetailsID);
+    
+   
+    var modal = document.getElementById("myModal");
+    modal.style.display = "block";
+
+    
+    var uploadBtn = document.getElementById("uploadBtn");
+
+    
+    uploadBtn.onclick = function() {
+        
+        var fileInput = document.getElementById("receiptFile");
+        var file = fileInput.files[0];
+        
+       
+        if (file) {
+            
+            var formData = new FormData();
+            formData.append("file", file);
+            formData.append("BUPaymentDetailsID", BUPaymentDetailsID); // Append the BUPaymentDetailsID to the FormData
+            
+            // Make a POST request to upload the file to the server
+            fetch("https://your-server-url.com/uploadReceipt", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response from the server after uploading the file
+                console.log("File upload response:", data);
+                
+                // Close the modal after uploading the file
+                modal.style.display = "none";
+                
+              
+            })
+            .catch(error => {
+                
+                console.error("Error uploading file:", error);
+            });
+        } else {
+           
+            alert("Please select a file.");
+        }
+    };
+}
+
+
+  </script>
+  
